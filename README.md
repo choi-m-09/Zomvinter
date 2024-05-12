@@ -16,6 +16,7 @@ https://www.youtube.com/watch?v=zgkwzUstLhE
 
 ## 인벤토리 및 아이템 시스템
 ### 아이템
+아이템의 공통 변수 및 정적 변수들을 Scriptable Object 클래스를 상속하여 저장함으로써 메모리 사용을 최소화 하였습니다. 클래스 구조는 다음과 같이 설계하였습니다.
 ![image](https://github.com/choi-m-09/Zomvinter/assets/80871047/203de148-a4fa-4e6c-abf0-06e61c581415)
 
 ### 인벤토리
