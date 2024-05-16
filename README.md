@@ -47,8 +47,8 @@ MonoBehaviour를 상속 받고 동적 변수와 각 아이템의 메소드 및 �
 + 원거리 좀비 : 플레이어를 쫒다가 사거리 안에 도달하면 애니메이션 이벤트의 함수가 호출되며 원거리 공격을 수행합니다.
 + 탱크 좀비 : 플레이어를 쫒는 중 돌진을 수행합니다. 돌진 후 거리에 도달하면 특수 공격을 시행하고 델리게이트를 실행시켜 플레이어의 카메라에 Shake 이벤트를 실행합니다.
 
-![image](https://github.com/choi-m-09/Zomvinter/assets/80871047/526a060c-2e0a-437b-ac53-1da5077eac81)
 ## Time 시스템
+![image](https://github.com/choi-m-09/Zomvinter/assets/80871047/526a060c-2e0a-437b-ac53-1da5077eac81)
 게임 내 Directional Light의 Rotation값에 따라 Bool 변수로 밤 낮을 구분하였습니다. 밤이 되면 플레이어 시야가 줄어들도록 RenderSetting의 Fog 값을 서서히 높여 어둠을 구현하였습니다. Fog 값이 일정 수치가 넘어가게 되면
 플레이어의 머리에 있는 Light가 활성화 됩니다. 추후 time 시스템을 보완하여 밤이 되면 좀비가 특정 액션을 취하고 날이 지날수록 새로운 좀비가 등장하도록 구현할 예정입니다. 
 
