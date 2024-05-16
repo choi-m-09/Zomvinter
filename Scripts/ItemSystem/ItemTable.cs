@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -7,11 +9,9 @@ public class ItemTable : MonoBehaviour
 {
     [SerializeField]
     List<GameObject> LootableObject = new List<GameObject>();
-    
-    [SerializeField]
-    List<ItemData> ItemDatas;
 
-    public ItemData[] items;
+    public Item[] items;
+    public GameObject[] item_list;
 
     [SerializeField]
     private LayerMask LootableLayerMask;
@@ -32,17 +32,18 @@ public class ItemTable : MonoBehaviour
 
     // Start is called before the first frame update
 
-    void Start()
+    void Awake()
     {
-        items = new ItemData[4];
-        for (int i = 0; i < 4; ++i)
+        Itemtable = Instantiate(Resources.Load("UI/ItemTableUI"), GameObject.Find("Canvas").transform) as GameObject;
+        tableSlot = Itemtable.GetComponentsInChildren<TableSlot>();
+        Itemtable.SetActive(false);
+        int ItemCount = Random.Range(1, 4);
+        items = new Item[ItemCount];
+        for (int i = 0; i < ItemCount; i++)
         {
             SpawnItem(i);
+            if(items[i] != null) SetTableSlot(i);
         }
-        Itemtable = Instantiate(Resources.Load("UI/ItemtableUI"), GameObject.Find("Canvas").transform) as GameObject;
-        tableSlot = Itemtable.GetComponentsInChildren<TableSlot>();
-        SetTableSlot();
-        Itemtable.SetActive(false);
     }
 
     // Update is called once per frame
@@ -55,7 +56,6 @@ public class ItemTable : MonoBehaviour
                 if (InstLootUI != null) Destroy(InstLootUI);
                 if (SearchingObj == null && LootableObject != null)
                     if (ObjectUI == null)
-                    {
                         if (InstLootUI != null)
                         {
                             Destroy(InstLootUI);
@@ -65,7 +65,6 @@ public class ItemTable : MonoBehaviour
                             SearchingObj = Instantiate(Resources.Load("UI/SearchingObj"), GameObject.Find("Canvas").transform) as GameObject;
                             StartCoroutine(SearchingObject(SearchingObj));
                         }
-                    }
                 Destroy(ObjectUI);
                 ObjectUI = null;
             }
@@ -100,23 +99,25 @@ public class ItemTable : MonoBehaviour
 
     void SpawnItem(int i)
     {
-        int random = Random.Range(0, 3);
+            int random = Random.Range(0, 3);
 
-        switch(random)
-        {
-            case 0:
-                items[i] = ItemDatas[0];
-                break;
-            case 1:
-                items[i] = ItemDatas[1];
-                break;
-            case 2:
-                items[i] = ItemDatas[2];
-                break;
-            case 3:
-                items[i] = ItemDatas[3];
-                break;
-        }
+            switch (random)
+            {
+                case 0:
+                    if (item_list[0] != null) items[i] = Instantiate(item_list[0].GetComponent<Item>());
+                    break;
+                case 1:
+                    if (item_list[1] != null) items[i] = Instantiate(item_list[1].GetComponent<Item>());
+                    break;
+                case 2:
+                    if (item_list[2] != null) items[i] = Instantiate(item_list[2].GetComponent<Item>());
+                    break;
+                case 3:
+                    if (item_list[3] != null) items[i] = Instantiate(item_list[3].GetComponent<Item>());
+                    break;
+            }
+            if (items[i] != null) items[i].gameObject.SetActive(false);
+        
     }
     IEnumerator SearchingObject(GameObject obj)
     {
@@ -132,11 +133,12 @@ public class ItemTable : MonoBehaviour
         Destroy(ObjectUI);
     }
 
-    void SetTableSlot()
+    void SetTableSlot(int index)
     {
-        for(int i = 0; i < 4; ++i)
+        if (items[index] is CountableItem ci)
         {
-            tableSlot[i].Data = items[i];
+            ci.Amount = Random.Range(5, 30);
         }
+        tableSlot[index].item = items[index];
     }
 }

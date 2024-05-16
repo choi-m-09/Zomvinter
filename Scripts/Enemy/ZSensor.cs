@@ -5,16 +5,16 @@ using UnityEngine.Events;
 
 public class ZSensor : MonoBehaviour
 {
-    /// <summary> ¹Ì»ç¿ë µô¸®°ÔÀÌÆ® </summary>
+    /// <summary> ï¿½Ì»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® </summary>
     public UnityAction FindTarget = null;
-    /// <summary> Àû Å¸°Ù ·¹ÀÌ¾î¸¶½ºÅ© </summary>
+    /// <summary> ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¾î¸¶ï¿½ï¿½Å© </summary>
     public LayerMask myEnemyMask;
-    /// <summary> ³» Å¸°Ù ¿ÀºêÁ§Æ® </summary>
+    /// <summary> ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® </summary>
     //public BattleSystem myTarget = null;
-    /// <summary> ³» Å¸°Ù ¿ÀºêÁ§Æ® </summary>
+    /// <summary> ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® </summary>
     public GameObject myEnemy = null;
 
-    /* Æ®¸®°Å Á¦¾î ÇÔ¼ö -----------------------------------------------------------------------------------------------*/
+    /* Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½ -----------------------------------------------------------------------------------------------*/
 
     private void OnTriggerEnter(Collider other)
     {

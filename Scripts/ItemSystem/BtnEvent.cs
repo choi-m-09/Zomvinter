@@ -26,8 +26,7 @@ public class BtnEvent : MonoBehaviour
     {
         for(int i = 0; i < Tableslot.Length; i++)
         {
-            int Index = _inventory.FindEmptySlotIndex(_inventory.Items, _inventory.Items.Count);
-            _inventory.Items[Index] = Tableslot[i].Data;
+            _inventory.Add(Tableslot[i].item);
             Destroy(Tableslot[i].gameObject);
         }
     }

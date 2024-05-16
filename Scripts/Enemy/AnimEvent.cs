@@ -5,7 +5,7 @@ using UnityEngine.Events;
 
 public class AnimEvent : MonoBehaviour
 {
-    /// µô¸®°ÔÀÌÆ® ¼±¾ğ ///
+    /// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ///
     public event UnityAction Attack = null;
     public event UnityAction AttackStart = null;
     public event UnityAction AttackEnd = null;
@@ -15,24 +15,25 @@ public class AnimEvent : MonoBehaviour
     public event UnityAction Camerashake = null;
     public event UnityAction RangeAttack = null;
 
-    /// <summary> °ø°İ µô¸®°ÔÀÌÆ® </summary>
+    /// <summary> ê³µê²© ì‹œì‘ </summary>
     public void OnAttack()
     {
         Attack?.Invoke();
     }
 
-    /// <summary> °ø°İ ½ÃÀÛ ÁöÁ¡ µô¸®°ÔÀÌÆ® </summary>
+    /// <summary> ê³µê²© ì• ë‹ˆë©”ì´ì…˜ ì‹œì‘ </summary>
     public void OnAttackStart()
     {
         AttackStart?.Invoke();
     }
 
-    /// <summary> °ø°İ ³¡ ÁöÁ¡ µô¸®°ÔÀÌÆ® </summary>
+    /// <summary> ê³µê²© ì• ë‹ˆë©”ì´ì…˜ ë </summary>
     public void OnAttackEnd()
     {
         AttackEnd?.Invoke();
     }
 
+    /// <summary> Tank ì¢€ë¹„ íŠ¹ìˆ˜ê³µê²© ì¤€ë¹„ ëª¨ì…˜ </summary>
     public void IsRush()
     {
         IsRushing?.Invoke();
@@ -48,6 +49,7 @@ public class AnimEvent : MonoBehaviour
         Attackclear?.Invoke();
     }
 
+    /// <summary> Tank ì¢€ë¹„ íŠ¹ìˆ˜ê³µê²© ì‹œ ì¹´ë©”ë¼ Shake ì´ë²¤íŠ¸ </summary>
     public void CameraShake()
     {
         Camerashake?.Invoke();

@@ -4,11 +4,11 @@ using UnityEngine;
 
 public class PlayerInterface : MonoBehaviour
 {
-    #region ��ũ��Ʈ ���� ����
+    #region 캔버스 오브젝트 및 PlayetInterface 슬롯
     ///<summary> Canvas </summary>
-    private Canvas _canvas;
+    [SerializeField]
+    private GameObject _canvas;
     ///<summary> Canvas �ȿ� �ִ� Inventory.cs </summary>
-    private Inventory _inventory;
 
     ///<summary> �� ���� ���� ��ũ��Ʈ </summary>
     private VisualizeSlot Primary;
@@ -18,25 +18,21 @@ public class PlayerInterface : MonoBehaviour
     private VisualizeSlot[] Expands;
     #endregion
 
-    #region ������Ʈ ���� ����
-    ///<summary> �� ���� ���� ���� </summary>
+    #region 
+    ///<summary>  </summary>
     private GameObject _primaryGo;
-    ///<summary> ���� ���� ���� ���� </summary>
+    ///<summary>  </summary>
     private GameObject _secondaryGo;
-    ///<summary> �Ҹ�ǰ ���� ���� </summary>
+    ///<summary>  </summary>
     private GameObject _expandGo;
     #endregion
 
     /***********************************************************************
     *                               Unity Events
     ***********************************************************************/
-    #region ����Ƽ �̺�Ʈ
+    #region Unity Events
 
     /// <summary> ������ ������ �̺�Ʈ �޼��� (Awake�� ������ �ڵ带 �ۼ� �� ��) </summary>
-    private void OnValidate()
-    {
-        GetScripts();
-    }
 
     private void Awake()
     {
@@ -52,58 +48,52 @@ public class PlayerInterface : MonoBehaviour
     /***********************************************************************
     *                               Private Methods
     ***********************************************************************/
-    #region Private �Լ�
-    /// <summary> �ʿ� ��ũ��Ʈ ���� �޼��� </summary>
+    #region Private Methods
+    /// <summary>  </summary>
     private void GetScripts()
     {
-        // Inventory.cs ����
-        _canvas = GetComponentInParent<Canvas>();
-        _inventory = _canvas.GetComponentInChildren<Inventory>();
-
-        // GameObject ���� ����
         _primaryGo = transform.GetChild(0).Find("CurPrimary").gameObject;
         _secondaryGo = transform.GetChild(0).Find("CurSecondary").gameObject;
         _expandGo = transform.Find("Item").gameObject;
 
-        // VisualizeSlot ����
         Primary = _primaryGo.GetComponentInChildren<VisualizeSlot>();
         Seconcdary = _secondaryGo.GetComponentInChildren<VisualizeSlot>();
         Expands = _expandGo.GetComponentsInChildren<VisualizeSlot>();
     }
 
-    /// <summary> HUD�� ǥ�� �� ���Ե��� ������ �� ���� �޼��� </summary>
+    /// <summary>  </summary>
     private void UpdateSlot()
     {
-        // 1. ���� �������� �� ���Ⱑ null �� �ƴ� ���
-        if (_inventory.PrimaryItems[0] != null) // ���� ���� �ʿ�
+        // 1. 주무기 슬롯 인터페이스
+        if (Inventory._inventory.PrimarySlots[0] != null) 
         {
-            Primary.SetItemData(_inventory.PrimaryItems[0]);
+            Primary.SetItemData(Inventory._inventory.PrimarySlots[0]);
         }
-        // 1-1. null �� ���
+
         else
         {
             Primary.SetItemData(null);
         }
 
-        // 2. ���� �������� �������Ⱑ null �� �ƴ� ���
-        if (_inventory.SecondaryItems != null)
+        // 2. 보조무기 슬롯 인터페이스
+        if (Inventory._inventory.SecondarySlots[0] != null)
         {
-            Seconcdary.SetItemData(_inventory.SecondaryItems);
+            Seconcdary.SetItemData(Inventory._inventory.SecondarySlots[0]);
         }
-        // 2-1. null �� ���
+        
         else
         {
             Seconcdary.SetItemData(null);
         }
 
-        for (int i = 0; i < _inventory.ConsumableItems.Count; i++)
+        for (int i = 0; i < Inventory._inventory.ConsumableSlots.Length; i++)
         {
-            // 3. ���� �������� �Ҹ�ǰ�� null�� �ƴ� ���
-            if (_inventory.ConsumableItems[i] != null)
+            // 3. 확장 슬롯 인터페이스
+            if (Inventory._inventory.ConsumableSlots[i] != null)
             {
-                Expands[i].SetItemData(_inventory.ConsumableItems[i]);
+                Expands[i].SetItemData(Inventory._inventory.ConsumableSlots[i]);
             }
-            // 3-1. null �� ���
+            
             else
             {
                 Expands[i].SetItemData(null);
@@ -115,7 +105,7 @@ public class PlayerInterface : MonoBehaviour
     /***********************************************************************
     *                               Public Methods
     ***********************************************************************/
-    #region Public �Լ�
+    #region public Methods
     /// <summary> HUD ���̱� </summary>
     public void ShowHUD() => gameObject.SetActive(true);
     /// <summary> HUD ����� </summary>

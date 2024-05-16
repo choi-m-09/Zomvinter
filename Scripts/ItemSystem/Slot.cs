@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -10,53 +11,48 @@ public class Slot : MonoBehaviour, IDropHandler
 *                               Option Fields
 ***********************************************************************/
     #region .
-    [Tooltip("½½·Ô ³»¿¡¼­ ¾ÆÀÌÄÜ°ú ½½·Ô »çÀÌÀÇ ¿©¹é")]
+    [Tooltip("ìŠ¬ë¡¯ íŒ¨ë”©ê°’")]
     [SerializeField] private float _padding = 1.0f;
 
-    [Tooltip("¾ÆÀÌÅÛ ¾ÆÀÌÄÜ ÀÌ¹ÌÁö")]
+    [Tooltip("ì•„ì´í…œ ì•„ì´ì½˜")]
     [SerializeField] private Image _iconImage;
 
-    [Tooltip("¾ÆÀÌÅÛ °³¼ö ÅØ½ºÆ®")]
+    [Tooltip("ì•„ì´í…œ ìˆ˜ëŸ‰ í…ìŠ¤íŠ¸")]
     [SerializeField] private TMPro.TMP_Text _amountText;
     #endregion
 
     /***********************************************************************
     *                               Properties
     ***********************************************************************/
-    #region ÇÁ·ÎÆÛÆ¼
-    /// <summary> ½½·ÔÀÇ ÀÎµ¦½º </summary>
     public int SlotIndex;
 
-    [SerializeField]
-    public ItemData _item;
+    public Item _item;
+
+    private ItemData itemData;
 
     public ItemData ItemProperties
     {
-        get { return _item; }
-        set { _item = value; }
+        get
+        {
+            return itemData;
+        }
+        set
+        {
+            itemData = value;
+        }
     }
 
-    /// <summary> ½½·ÔÀÇ Å¸ÀÔ </summary>
-    public ItemType SlotState;
-
-    /// <summary> ½½·ÔÀÌ ¾ÆÀÌÅÛÀ» º¸À¯ÇÏ°í ÀÖ´ÂÁö ¿©ºÎ </summary>
+    /// <summary> ìŠ¬ë¡¯ì´ ì•„ì´í…œì„ ê°€ì§€ê³  ìˆëŠ”ì§€ ì—¬ë¶€ </summary>
     public bool HasItem => ItemProperties != null;
-
-    /// <summary> Á¢±Ù °¡´ÉÇÑ ½½·ÔÀÎÁö ¿©ºÎ </summary>
-    public bool IsAccessible => _isAccessibleSlot && _isAccessibleItem;
-    #endregion
     /***********************************************************************
     *                               Fields
     ***********************************************************************/
-    #region ÇÊµå
-    /// <summary> ÀÎº¥Åä¸® </summary>
-    private Inventory _Inventory;
-    /// <summary> ÀÎº¥Åä¸®UI </summary>
-    private InventoryUI _InventoryUI;
-    /// <summary> ½½·Ô </summary>
+    #region ï¿½Êµï¿½
+    public ItemType SlotState;
+    /// <summary> ï¿½ï¿½ï¿½ï¿½ </summary>
     private SlotItem _slotItem;
 
-    /// <summary> ½½·Ô ÀÌ¹ÌÁö </summary>
+    /// <summary> ìŠ¬ë¡¯ì— ë‚˜íƒ€ë‚˜ëŠ” ì´ë¯¸ì§€ </summary>
     private Image _slotImage;
 
     private RectTransform _slotRect;
@@ -67,14 +63,14 @@ public class Slot : MonoBehaviour, IDropHandler
     [SerializeField]
     private GameObject _textGo;
 
-    /// <summary> ½½·Ô Á¢±Ù°¡´É ¿©ºÎ </summary>
+    /// <summary>  </summary>
     private bool _isAccessibleSlot;
-    /// <summary> ¾ÆÀÌÅÛ Á¢±Ù°¡´É ¿©ºÎ </summary>
+    /// <summary> ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ù°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ </summary>
     private bool _isAccessibleItem;
 
-    /// <summary> ºñÈ°¼ºÈ­µÈ ½½·ÔÀÇ »ö»ó </summary>
+    /// <summary>  </summary>
     private static readonly Color InaccessibleSlotColor = new Color(0.2f, 0.2f, 0.2f, 0.5f);
-    /// <summary> ºñÈ°¼ºÈ­µÈ ¾ÆÀÌÄÜ »ö»ó </summary>
+    /// <summary> ï¿½ï¿½È°ï¿½ï¿½È­ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ </summary>
     private static readonly Color InaccessibleIconColor = new Color(0.5f, 0.5f, 0.5f, 0.5f);
     #endregion
 
@@ -84,27 +80,30 @@ public class Slot : MonoBehaviour, IDropHandler
     #region
     private void OnValidate()
     {
-        InitComponenet();
+        InitComponent();
         InitValue();
     }
 
-    private void Awake()
+    void Start()
     {
-
-    }
-
-    private void Start()
-    {
-    }
-    private void Update()
-    {
-        // GameObject
         _iconGo = this.GetComponentInChildren<SlotItem>().gameObject;
         _textGo = this.GetComponentInChildren<TMPro.TMP_Text>().gameObject;
+    }
+
+    private void Update()
+    {
+        if (_item != null) ItemProperties = SetItemData(_item);
+        else ItemProperties = null;
 
         if (ItemProperties != null)
         {
             SetItem(ItemProperties.ItemImage);
+            if (_item is CountableItem ci && ci.Amount > 1)
+            {
+                if (_amountText.gameObject.activeSelf == false) ShowText();
+                SetItemAmount(ci.Amount);
+            }
+            else HideText();
         }
         else
         {
@@ -117,13 +116,10 @@ public class Slot : MonoBehaviour, IDropHandler
     /***********************************************************************
     *                               Private Methods
     ***********************************************************************/
-    #region
-    /// <summary> ÃÊ±â ¼³Á¤ ÇÔ¼ö </summary>
-    private void InitComponenet ()
+    /// <summary> ï¿½Ê±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½ </summary>
+    private void InitComponent()
     {
         // Scripts
-        _Inventory = GetComponentInParent<Inventory>();
-        _InventoryUI = GetComponentInParent<InventoryUI>();
         _slotItem = GetComponentInChildren<SlotItem>();
 
         // Rect
@@ -138,125 +134,46 @@ public class Slot : MonoBehaviour, IDropHandler
 
     private void InitValue()
     {
-        // 1. Item Icon, Highlight Rect
-
-        //_iconRect.pivot = new Vector2(0.5f, 0.5f); // ÇÇ¹şÀº Áß¾Ó
-        //_iconRect.anchoredPosition = new Vector2(0.0f, 15.0f); // À§Ä¡
-        //_iconRect.sizeDelta = new Vector2(80.0f, 32.5f); // »çÀÌÁî
-
-        //_iconRect.pivot = new Vector2(0.5f, 0.5f); // ÇÇ¹şÀº Áß¾Ó
-        //_iconRect.anchoredPosition = new Vector2(0.5f, 0.5f); // À§Ä¡
-        //_iconRect.sizeDelta = new Vector2(25.0f, 25.0f); // »çÀÌÁî
-
-
-        // 2. Image
         _iconImage.raycastTarget = true;
-
-        // 3. Deactivate Icon
-        //HideIcon();
     }
 
     private void ShowIcon() => _iconGo.SetActive(true);
-    private void HideIcon() => _iconGo.SetActive(false);
 
     private void ShowText() => _textGo.SetActive(true);
     private void HideText() => _textGo.SetActive(false);
 
-    private void GetItemInfo(List<Item> list)
-    {
-        if (list[SlotIndex].Data != null)
-        {
-            ItemProperties = list[SlotIndex].Data;
-        }
-    }
-    private void GetItemInfo(Item item)
-    {
-        //if (item != null)
-        //{
-        //    ItemProperties = item.Data;
-        //}
-    }
-    #endregion
 
     /***********************************************************************
     *                               Public Methods
     ***********************************************************************/
-    #region Public ÇÔ¼ö
-
-    /// <summary> ½½·Ô ÀÚÃ¼ÀÇ È°¼ºÈ­/ºñÈ°¼ºÈ­ ¿©ºÎ Á¦¾î </summary>
-    public void SetSlotAccessState(bool value)
-    {
-        // Áßº¹ Ã³¸®´Â Áö¾ç
-        if (_isAccessibleSlot == value) return;
-
-        if (value)
-        {
-            // ½½·Ô ÀÌ¹ÌÁö »ö È°¼ºÈ­
-            _slotImage.color = Color.white;
-        }
-        else
-        {
-            // ¾ÆÀÌÅÛ ÀÌ¹ÌÁö »ö È°¼ºÈ­
-            _slotImage.color = InaccessibleSlotColor;
-            //HideIcon();
-            //HideText();
-        }
-
-        _isAccessibleSlot = value;
-    }
-    
-    /// <summary> ¾ÆÀÌÅÛ È°¼ºÈ­/ºñÈ°¼ºÈ­ ¿©ºÎ Á¦¾î </summary>
-    public void SetItemAccessState(bool value)
-    {
-        // Áßº¹ Ã³¸®´Â Áö¾ç
-        if (_isAccessibleItem == value) return;
-
-        if (value)
-        {
-            _iconImage.raycastTarget = true;
-            _iconImage.color = Color.white;
-            _amountText.color = Color.white;
-
-        }
-        else
-        {
-            _iconImage.raycastTarget = false;
-            _iconImage.color = InaccessibleIconColor;
-            _amountText.color = InaccessibleIconColor;
-        }
-
-        _isAccessibleItem = value;
-    }
-    #endregion
-
-    /// <summary> ½½·Ô¿¡ ¾ÆÀÌÅÛ µî·Ï </summary>
     public void SetItem(Sprite sprite)
     {
-        //if (!this.IsAccessible) return;
-
         if (sprite != null)
         {
             _iconImage.sprite = sprite;
             ShowIcon();
-            //SetItemAccessState(true);
-            //SetSlotAccessState(true);
         }
         else
         {
             RemoveItem();
-            //SetItemAccessState(false);
         }
     }
-    
-    /// <summary> ½½·Ô¿¡¼­ ¾ÆÀÌÅÛ Á¦°Å </summary>
+
+    /// <summary> ì•„ì´í…œ ë°ì´í„° ìºìŠ¤íŒ… </summary>
+    public ItemData SetItemData(Item item)
+    {
+        if (item is EquipmentItem ei) return ei.EquipmentData;
+        else if (item is CountableItem ci) return ci.CountableData;
+        return null;
+    }
+    /// <summary> ìŠ¬ë¡¯ì´ ë¹„ì—ˆì„ ë•Œ ìŠ¬ë¡¯ ë°°ê²½ ì´ë¯¸ì§€ ë° í…ìŠ¤íŠ¸ ì´ˆê¸°í™” </summary>
     public void RemoveItem()
     {
         _iconImage.sprite = null;
-        //HideIcon();
-        //HideText();
+        HideText();
     }
 
-    /// <summary> ¾ÆÀÌÅÛ °³¼ö ÅØ½ºÆ® ¼³Á¤(amount°¡ 1 ÀÌÇÏÀÏ °æ¿ì ÅØ½ºÆ® ¹ÌÇ¥½Ã) </summary>
+    /// <summary> ìˆ˜ëŸ‰ì´ 1ê°œ ì´í•˜ì¸ ê²½ìš° í…ìŠ¤íŠ¸ ë¯¸í‘œì‹œ </summary>
     public void SetItemAmount(int amount)
     {
         //if (!this.IsAccessible) return;
@@ -277,8 +194,7 @@ public class Slot : MonoBehaviour, IDropHandler
     *                               Old Methods
     ***********************************************************************/
 
-    /// <summary> OnDrop ÀÌº¥Æ®°¡ ¹ß»ıÇßÀ» ¶§ ½ÇÇà µÉ ÀÌº¥Æ® </summary>
-    /// <param name="eventData">OnDropÀÌ ¹ß»ı µÇ´Â ÁöÁ¡ÀÇ ¿ÀºêÁ§Æ®</param>
+    /// <param name="eventData"></param>
     public void OnDrop(PointerEventData eventData)
     {
         SlotItem item = eventData.pointerDrag.GetComponent<SlotItem>();
@@ -286,7 +202,7 @@ public class Slot : MonoBehaviour, IDropHandler
 
         if (item != null)
         {
-            item.SwapItem(_Inventory.Items, this.transform);
+            item.SwapItem(Inventory._inventory.Items, this.transform);
             //item.ChangeParent(this.transform);
         }
         this.GetComponentInChildren<SlotItem>().CurIndex = SlotIndex;

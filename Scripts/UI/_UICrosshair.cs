@@ -17,21 +17,25 @@ public class _UICrosshair : MonoBehaviour
     [SerializeField]
     Transform CrossHair;
 
+    [SerializeField]
+    Player player;
+
     /***********************************************************************
     *                               Unity Events
     ***********************************************************************/
-    #region À¯´ÏÆ¼ ÀÌº¥Æ®
+    #region ï¿½ï¿½ï¿½ï¿½Æ¼ ï¿½Ìºï¿½Æ®
     void Start()
     {
         CrossHair = this.GetComponentInChildren<Image>().transform;
-        // Cursor.visible = false; // ¸¶¿ì½º Ä¿¼­ ¾ø¾Ö±â
+        player = GameObject.Find("Player").GetComponent<Player>();
+        // Cursor.visible = false; // ï¿½ï¿½ï¿½ì½º Ä¿ï¿½ï¿½ ï¿½ï¿½ï¿½Ö±ï¿½
         if(isAimed)
         {
-            this.GetComponent<Image>().sprite = AimedPoint;
+            this.GetComponentInChildren<Image>().sprite = AimedPoint;
         }
         else
         {
-            this.GetComponent<Image>().sprite = Point;
+            this.GetComponentInChildren<Image>().sprite = Point;
         }
     }
 
@@ -40,7 +44,7 @@ public class _UICrosshair : MonoBehaviour
     {
         MousePos = Input.mousePosition;
         this.GetComponent<RectTransform>().position = MousePos;
-        if (Input.GetMouseButtonDown(1))
+        if (Input.GetMouseButton(1) && player.AimCheck)
         {
             isAimed = true;
         }
@@ -52,7 +56,7 @@ public class _UICrosshair : MonoBehaviour
         if (isAimed)
         {
             this.GetComponentInChildren<Image>().sprite = AimedPoint;
-            CrossHair.Rotate(Vector3.forward, Space.Self);
+            if (player.Reloading) CrossHair.Rotate(Vector3.forward, Space.Self);
         }
         else
         {

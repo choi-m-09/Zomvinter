@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.UIElements;
 using UnityEngine;
 /*
     [Item의 상속구조]
@@ -8,7 +9,6 @@ using UnityEngine;
 
         - EquipmentItem
             - WeaponItem
-            - ArmorItem
 
     [ItemData의 상속구조]
       (ItemData는 해당 아이템이 공통으로 가질 데이터 필드 모음)
@@ -25,7 +25,6 @@ using UnityEngine;
 /*
     [API]
     - bool HasItem(int) : 해당 인덱스의 슬롯에 아이템이 존재하는지 여부
-    - bool IsCountableItem(int) : 해당 인덱스의 아이템이 셀 수 있는 아이템인지 여부
     - int GetCurrentAmount(int) : 해당 인덱스의 아이템 수량
         - -1 : 잘못된 인덱스
         -  0 : 빈 슬롯
@@ -33,20 +32,10 @@ using UnityEngine;
     - ItemData GetItemData(int) : 해당 인덱스의 아이템 정보
     - string GetItemName(int) : 해당 인덱스의 아이템 이름
 
-    - int Add(ItemData, int) : 해당 타입의 아이템을 지정한 개수만큼 인벤토리에 추가
-        - 자리 부족으로 못넣은 개수만큼 리턴(0이면 모두 추가 성공했다는 의미)
+    - int Add(Item, int) : 해당 타입의 아이템을 지정한 개수만큼 인벤토리에 추가
     - void Remove(int) : 해당 인덱스의 슬롯에 있는 아이템 제거
     - void Swap(int, int) : 두 인덱스의 아이템 위치 서로 바꾸기
-    - void SeparateAmount(int a, int b, int amount)
-        - a 인덱스의 아이템이 셀 수 있는 아이템일 경우, amount만큼 분리하여 b 인덱스로 복제
     - void Use(int) : 해당 인덱스의 아이템 사용
-    - void UpdateSlot(int) : 해당 인덱스의 슬롯 상태 및 UI 갱신
-    - void UpdateAllSlot() : 모든 슬롯 상태 및 UI 갱신
-    - void UpdateAccessibleStatesAll() : 모든 슬롯 UI에 접근 가능 여부 갱신
-    - void TrimAll() : 앞에서부터 아이템 슬롯 채우기
-    - void SortAll() : 앞에서부터 아이템 슬롯 채우면서 정렬
-
-// 날짜 : 2021-03-07 PM 7:33:52
 */
 
 public class Inventory : MonoBehaviour
@@ -55,9 +44,10 @@ public class Inventory : MonoBehaviour
     *                               Public Properties
     ***********************************************************************/
     #region Public 프로퍼티
-    /// <summary> 내 플레이어의 위치 </summary>
-    public Transform myPlayerPos;
 
+    public static Inventory _inventory;
+
+    public static bool is_craftWin = false;
     /// <summary> 백팩 수용 한도 </summary>
     [SerializeField]
     public int ItemCapacity { get; set; }
@@ -80,15 +70,10 @@ public class Inventory : MonoBehaviour
     /***********************************************************************
     *                               Private Fields
     ***********************************************************************/
-    #region 
-    /// <summary> 연결된 InventoryUI 스크립트 </summary>
-    [SerializeField]
-    private InventoryUI _inventoryUI;
-
     #region 가방
 
     /// <summary> 백팩 아이템 목록 리스트 </summary>
-    public List<ItemData> Items;
+    public Item[] Items;
     /// <summary> 백팩 최대 수용 한도 </summary>
     [Range(4, 16)]
     private int _itemsMaxCapacity = 16;
@@ -96,16 +81,16 @@ public class Inventory : MonoBehaviour
 
     #region 주무기
     /// <summary> 주 무기 아이템 목록 리스트 </summary>
-    public List<ItemData> PrimaryItems;
+    public Item[] PrimaryItems;
 
     /// <summary> 아이템 최대 수용 한도 </summary>
-    [SerializeField,Range(2, 2)]
+    [SerializeField, Range(2, 2)]
     private int _PrimaryMaxCapacity = 2;
     #endregion -------------------------------------------------------------------
 
     #region 보조무기
     /// <summary> 보조 무기 아이템 목록 리스트 </summary>
-    public ItemData SecondaryItems;
+    public Item SecondaryItem;
 
     /// <summary> 보조무기 최대 수용 한도 </summary>
     [SerializeField, Range(1, 1)]
@@ -114,8 +99,8 @@ public class Inventory : MonoBehaviour
 
     #region 소모품
     /// <summary> 소모품 아이템 목록 리스트 </summary>
-    public List<ItemData> ConsumableItems;
-    public List<ItemData> ArmorItems;
+    public Item[] ConsumableItems;
+    public Item[] ArmorItems;
 
     /// <summary> 소모품 최대 수용 한도 </summary>
     [SerializeField, Range(1, 3)]
@@ -126,13 +111,13 @@ public class Inventory : MonoBehaviour
 
     #region 장비
     /// <summary> 헬멧에 저장 될 아이템 </summary>
-    public ItemData HelmetItem = null;
+    public Item HelmetItem = null;
 
     /// <summary> 방어구에 저장 될 아이템 </summary>
-    public ItemData BodyArmorItem = null;
+    public Item BodyArmorItem = null;
 
     /// <summary> 가방에 저장 될 아이템 </summary>
-    public ItemData BackpackItem = null;
+    public Item BackpackItem = null;
 
     #endregion -------------------------------------------------------------------
 
@@ -157,7 +142,7 @@ public class Inventory : MonoBehaviour
     public Slot[] BackpackSlot;
     #endregion
 
-    #region
+    #region 슬롯 위치
     [Header("Connected Objects")]
     /// <summary> 슬롯들이 위치할 영역 </summary>
     [SerializeField] private Transform ItemBag;
@@ -171,8 +156,7 @@ public class Inventory : MonoBehaviour
     [SerializeField] private Transform EquipmentBag;
     #endregion
 
-#endregion
-
+    [SerializeField] GameObject CraftUI;
     /***********************************************************************
     *                               Unity Events
     ***********************************************************************/
@@ -183,8 +167,6 @@ public class Inventory : MonoBehaviour
     /// <summary> 에디터 상에서 실행 되는 함수 </summary>
     private void OnValidate()
     {
-        ConnectUI(GetComponent<InventoryUI>());
-
         ItemCapacity = SetInitalCapacity(_itemsMaxCapacity);
         PrimaryCapacity = SetInitalCapacity(_PrimaryMaxCapacity);
         SecondaryCapacity = SetInitalCapacity(_SecondaryMaxCapacity);
@@ -194,46 +176,42 @@ public class Inventory : MonoBehaviour
         InitSlot(out PrimarySlots, PrimaryBag);
         InitSlot(out SecondarySlots, SecondaryBag);
         InitSlot(out ConsumableSlots, ConsumableBag);
+
+        Items = new Item[ItemCapacity];
     }
     #endregion
 
-    private void Start()
+    private void Awake()
     {
-        UpdateAccessibleStatesAll();
+        if (_inventory == null) _inventory = this;
+        else Destroy(this.gameObject);
     }
 
     private void Update()
     {
         UpdateAllSlotData(Items, ItemSlots);
-        UpdateAllSlotIcon(ItemSlots);
         UpdateAllSlotData(PrimaryItems, PrimarySlots);
-        UpdateAllSlotIcon(PrimarySlots);
-        UpdateSlotData(SecondaryItems, SecondarySlots);
-        UpdateAllSlotIcon(SecondarySlots);
+        UpdateSlotData(SecondaryItem, SecondarySlots);
         UpdateAllSlotData(ConsumableItems, ConsumableSlots);
-        UpdateAllSlotIcon(ConsumableSlots);
         UpdateSlotData(HelmetItem, HelmetSlot);
-        UpdateAllSlotIcon(HelmetSlot);
         UpdateSlotData(BodyArmorItem, BodyArmorSlot);
-        UpdateAllSlotIcon(BodyArmorSlot);
         UpdateSlotData(BackpackItem, BackpackSlot);
-        UpdateAllSlotIcon(BackpackSlot);
     }
     /***********************************************************************
     *                               Private Methods
     ***********************************************************************/
-    #region
+    #region Private 메소드
     /// <summary> Bag에 있는 슬롯을 찾아서 Slot배열에 할당 </summary>
     private void InitSlot(out Slot[] _slotList, Transform Bag)
     {
         _slotList = Bag.GetComponentsInChildren<Slot>();
-        InitSlotIndex(_slotList);
+        InitSlotIndex(ref _slotList);
     }
 
     /// <summary> Slot에 인덱스 할당 </summary>
-    private void InitSlotIndex(Slot[] _slotList)
+    private void InitSlotIndex(ref Slot[] _slotList)
     {
-        for(int i = 0; i < _slotList.Length; i++)
+        for (int i = 0; i < _slotList.Length; i++)
         {
             _slotList[i].SlotIndex = i;
         }
@@ -245,20 +223,21 @@ public class Inventory : MonoBehaviour
         return Index >= 0 && Index < Capacity;
     }
 
-    
-
     /// <summary> 앞에서부터 개수 여유가 있는 Countable 아이템의 슬롯 인덱스 탐색 </summary>
-    private int FindCountableItemSlotIndex(CountableItemData target, int Capacity, List<Item>list, int startIndex = 0)
+    private int FindCountableItemSlotIndex(Item[] list,CountableItemData target, int startIndex = 0)
     {
-        for(int i = startIndex; i< Capacity; i++)
+        for (int i = startIndex; i < list.Length; i++)
         {
-            var current = list[i];
-            if (current == null) continue;
-
-            // 아이템 종류 일치, 개수 여유 확인
-            if(current.Data == target && current is CountableItem ci)
+            if (list[i] != null)
             {
-                if (!ci.IsMax) return i;
+                CountableItem current = list[i] as CountableItem;
+                if (current == null) continue;
+
+                // 아이템 종류 일치, 개수 여유 확인
+                if (current.CountableData == target)
+                {
+                    if (!current.IsMax) return i;
+                }
             }
         }
 
@@ -266,68 +245,78 @@ public class Inventory : MonoBehaviour
     }
 
     /// <summary> 해당하는 인덱스의 슬롯 상태 및 UI 갱신 </summary>
-    private void UpdateAllSlotData(List<ItemData> list, Slot[] slotList)
+    private void UpdateAllSlotData(Item[] list, Slot[] slotList)
     {
-        for (int i = 0; i < list.Count; i++)
+        for (int i = 0; i < list.Length; i++)
         {
             if (list[i] != null)
             {
-                ItemData item = list[i];
+                Item item = list[i];
 
-                slotList[i].ItemProperties = item;
+                slotList[i]._item = item;
             }
             else
             {
-                slotList[i].ItemProperties = null;
+                slotList[i]._item = null;
             }
         }
     }
 
-    private void UpdateSlotData(ItemData item, Slot[] slotList)
+    private void UpdateSlotData(Item item, Slot[] slotList)
     {
         for (int i = 0; i < slotList.Length; i++)
         {
             if (item != null)
             {
-                slotList[i].ItemProperties = item;
+                slotList[i]._item = item;
             }
             else
             {
-                slotList[i].ItemProperties = null;
-            }
-        }
-    }
-    /// <summary> 해당하는 인덱스의 슬롯 상태 및 UI 갱신 </summary>
-    private void UpdateAllSlotIcon(Slot[] _slotList)
-    {
-        for(int i = 0; i < _slotList.Length; i++)
-        {
-            if (_slotList[i].ItemProperties != null)
-            {
-                _slotList[i].SetItem(_slotList[i].ItemProperties.ItemImage);
-            }
-            else
-            {
-                _slotList[i].SetItem(null);
+                slotList[i]._item = null;
             }
         }
     }
 
+    private void Set_TotalIngredient(IngredientItem item)
+    {
+        switch (item.IngredientData.ID)
+        {
+            case 12043:
+                CraftManual.Total_CopperAmount += item.Amount;
+                break;
+            case 12044:
+                CraftManual.Total_IronAmount += item.Amount;
+                break;
+        }
+    }
+
+    private void Mius_TotalAmount(int id, int amount)
+    {
+        switch (id)
+        {
+            case 12044:
+                CraftManual.Total_IronAmount -= amount;
+                break;
+            case 12043:
+                CraftManual.Total_CopperAmount -= amount;
+                break;
+        }
+    }
     #endregion
     /***********************************************************************
     *                               Check & Getter Methods
     ***********************************************************************/
-    #region
+    #region 
     /// <summary> 가방 초기용량 설정 함수 </summary>
     int SetInitalCapacity(int inital)
     {
         return inital;
     }
-    
+
     /// <summary> 앞에서부터 비어있는 슬롯 인덱스 탐색 </summary>
-    public int FindEmptySlotIndex(List<ItemData> list, int Capacity, int StartIndex = 0)
+    public int FindEmptySlotIndex(Item[] list,int StartIndex = 0)
     {
-        for (int i = StartIndex; i < Capacity; i++)
+        for (int i = StartIndex; i < list.Length; i++)
         {
             if (list[i] == null)
             {
@@ -338,10 +327,10 @@ public class Inventory : MonoBehaviour
     }
 
     /// <summary> 인벤토리가 꽉 찼는지 탐색 </summary>
-    public bool isFull(List<ItemData> list)
+    public bool isFull(Item[] list)
     {
         bool Full = false;
-        for (int i = 0; i < list.Capacity; i++)
+        for (int i = 0; i < list.Length; i++)
         {
             if (list[i] == null)
             {
@@ -356,70 +345,120 @@ public class Inventory : MonoBehaviour
         return Full;
     }
 
-    public bool isFull(ItemData item)
+    public void Remove(int index)
     {
-        if (item == null) return false;
-        else return true;
+        GameObject go = Items[index].gameObject;
+        Items[index] = null;
+        Destroy(go);
     }
-
-    /// <summary> 해당 슬롯이 아이템을 갖고 있는지 여부 </summary>
-    public bool HasItem(int Index, int Capacity, List<Item> list)
-    {
-        return IsValidIndex(Index, Capacity) && list[Index] != null;
-    }
-
-
-    /// <summary> 해당 슬롯이 셀 수 있는 아이템인지 여부 </summary>
-    public bool IsConsumableItem(int Index, int Capacity, List<Item> list)
-    {
-        return HasItem(Index, Capacity, list) && list[Index] is PotionItem;
-    }
-
-    /// <summary> 
-    /// 해당 슬롯의 현재 아이템 개수 리턴
-    /// <para/> - 잘못된 인덱스 : -1 리턴
-    /// <para/> - 빈 슬롯 : 0 리턴
-    /// <para/> - 셀 수 없는 아이템 : 1 리턴
-    /// </summary>
-    public int GetCurrentAmount(int Index, int Capacity, List<ItemData> list)
-    {
-        if (!IsValidIndex(Index, Capacity)) return -1;
-        if (list[Index] == null) return 0;
-
-        PotionItemData con = list[Index] as PotionItemData;
-        if (con == null) return 1;
-
-        return con.MaxAmount;
-    }
-
     #endregion
 
     /***********************************************************************
     *                               Public Methods
     ***********************************************************************/
-    #region Public 함수
-
-    public void ConnectUI(InventoryUI inventoryUI)
+    #region Public 메소드
+    public void ShowCraftUI()
     {
-        _inventoryUI = inventoryUI;
-        _inventoryUI.SetInventoryReference(this);
+        is_craftWin = !is_craftWin;
+        if (is_craftWin) CraftUI.GetComponent<RectTransform>().anchoredPosition = new Vector2(700, 0);
+        else CraftUI.GetComponent<RectTransform>().anchoredPosition = new Vector2(700, 2000);
+    }
+    public void Add(Item item, int amount = 1)
+    {
+        int index;
+        if (item is CountableItem ci)
+        {
+            if (ci is IngredientItem ing_i) Set_TotalIngredient(ing_i); 
+
+            bool findnextSlot = true;
+            index = -1;
+            while (ci.Amount > 0)
+            {
+                if (findnextSlot)
+                {
+                    index = FindCountableItemSlotIndex(Items,ci.CountableData, index + 1);
+                    if (index != -1)
+                    {
+                        CountableItem root = Items[index] as CountableItem;
+                        while (!root.IsMax && ci.Amount > 0)
+                        {
+                            root.Amount++;
+                            ci.Amount--;
+                        }
+                    }
+                    else findnextSlot = false;
+                }
+                else
+                {
+                    index = FindEmptySlotIndex(Items ,index + 1);
+                    if (index != -1)
+                    {
+                        Items[index] = ci;
+                        break;
+                    }
+                    else break;
+                    
+                }
+            }
+            if (ci.Amount <= 0) Destroy(ci.gameObject);
+        }
+        else
+        {
+            index = FindEmptySlotIndex(Items);
+            if (index != -1 && item as EquipmentItem) Items[index] = item;
+        }
     }
 
-    /// <summary> 모든 슬롯 UI에 접근 가능 여부 업데이트 </summary>
-    public void UpdateAccessibleStatesAll()
+
+    public int FindAmmo(AmmoItemData data, int startIndex = 0)
     {
-        _inventoryUI.SetAccessibleSlotRange(ItemCapacity, ItemSlots);
-        _inventoryUI.SetAccessibleSlotRange(PrimaryCapacity, PrimarySlots);
-        _inventoryUI.SetAccessibleSlotRange(SecondaryCapacity, SecondarySlots);
-        _inventoryUI.SetAccessibleSlotRange(ConsumableCapacity, ConsumableSlots);
-        // 헬멧
-        // 방어구
-        // 가방
+        for (int i = startIndex; i < Items.Length; i++)
+        {
+            if (Items[i] != null)
+                if (Items[i] is AmmoItem ai && ai.AmmoData == data ) return i;
+        }
+        return -1;
     }
 
-    public void FindItem()
+    public int Count_Ingredient(IngredientItemData data, int needAmount)
     {
+        for(int i = 0; i < Items.Length; i++)
+        {
+            if (Items[i] is IngredientItem item && item.IngredientData == data)
+            {
+                bool flag = false;
+                while(needAmount > 0 && !flag)
+                {
+                    if(needAmount < item.Amount)
+                    {
+                        item.Amount -= needAmount;
+                        Mius_TotalAmount(item.IngredientData.ID, needAmount);
+                        return 1;
+                    }
+                    else
+                    {
+                        needAmount -= item.Amount;
+                        Mius_TotalAmount(item.IngredientData.ID, item.Amount);
+                        Remove(i);
+                        flag = true;
+                    }
+                }
+            }
+        }
 
+        return 0;
+    }
+
+    public void Use(Player _player,int index)
+    {
+        if (Items[index] == null) return;
+
+        if (Items[index] is IUsableItem UseI)
+        {
+            UseI.Use(_player);
+            CountableItem ci = UseI as CountableItem;
+            if (ci.Amount <= 0) Remove(index);
+        }
     }
     #endregion
 }

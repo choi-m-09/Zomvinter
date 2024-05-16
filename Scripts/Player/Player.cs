@@ -1,47 +1,48 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
+using System.Runtime.InteropServices.WindowsRuntime;
 using TMPro;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Animations;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-/// <summary> ���� ���� ��� - ���� ��� </summary>
+/// <summary> 플레이어 상태 열거 </summary>
 public enum STATE
 {
     NONE, CREATE, ALIVE, BATTLE, DEAD
 }
 
-
-
 public class Player : PlayerController, BattleSystem
 {
-    #region �÷��̾� ������ ����
-    //���� ����ü
-    [Header("�÷��̾� ����")]
-    [SerializeField]
-    public static CharacterStat Stat;
+    #region 전역 필드
+    
+    public CharacterStat Stat;
+
+    public static float AttackSpeed = 1;
     #endregion
 
-    #region �κ��丮 UI ����
-    private Inventory _Inventory;
+    #region 인벤토리 및 스탯 UI 관련 필드
     private StatUI _statUI;
 
     private bool ActiveInv = false;
     private bool ActiveStat = false;
     #endregion
 
-    #region �̵� ���� ����
-    /// <summary> �÷��̾� �̵� ���� </summary>
+    #region 
+
     Vector3 pos = Vector3.zero;
 
-    /// <summary> ũ�ν���� </summary>
-    
+
+
     #endregion
 
-    #region ���ε� ����
+    #region UI 및 카메라 필드
 
-    [Header("���ε� �ʿ�")]
+    [Header("캔버스")]
     [SerializeField]
     private Transform _canvas;
     [SerializeField]
@@ -49,12 +50,12 @@ public class Player : PlayerController, BattleSystem
     private Transform _cameraArm;
     #endregion
 
-    #region ���� ���� ��� - ����
-    [Header("���� ���")]
+    #region 
+    [Header("현재 상태")]
     public STATE myState = STATE.NONE;
     #endregion
 
-    #region �ڷ�ƾ ����
+    #region 코루틴 필드
     // ���� ��� �ڷ�ƾ
     private Coroutine aliveCycle = null;
 
@@ -65,12 +66,10 @@ public class Player : PlayerController, BattleSystem
 
     #endregion
 
-    #region ���� ����
-    [Header("���� ��ġ ��")]
+    #region 플레이어 무기 관련 필드
+    [Header("무기 소켓")]
     [SerializeField]
     public GameObject myWeapon = null;
-    [SerializeField]
-    public GameObject myKnife = null;
     [SerializeField]
     private LayerMask EnemyMask;
     [SerializeField]
@@ -81,50 +80,46 @@ public class Player : PlayerController, BattleSystem
     public Transform BackRightSorket;
     [SerializeField]
     public Transform PistolGrip;
-    [SerializeField]
-    public Transform KnifeGrip;
+
 
     public GameObject Text_GameOver;
-    
 
-    [Header("�÷��̾� ���� Bool")]
-    /// <summary> ���� ���� üũ Bool </summary>
-    // public bool Armed = false;
-    /// <summary> �ִϸ��̼� ���� üũ Bool </summary>
+
+    [Header("상태 확인")]
+    /// <summary> 애니메이션 끝났는지 체크 </summary>
     public bool MotionEnd = true;
 
     [SerializeField]
-    /// <summary> ù��° ������ �����ߴ��� üũ Bool </summary>
+    /// <summary> 첫번째 주무기 장착 중 여부 </summary>
     public bool isFirst = false;
     [SerializeField]
-    /// <summary> �ι�° ������ �����ߴ��� üũ Bool </summary>
+    /// <summary> 두번째 주무기 장착 중 여부 </summary>
     public bool isSecond = false;
     [SerializeField]
-    /// <summary> �� ������ �����ߴ��� üũ Bool </summary>
+    /// <summary> 보조 무기 장착 여부 </summary>
     public bool isPistol = false;
 
+    public bool Reloading = false;
+
     [SerializeField]
-    /// <summary> ���� ���� üũ Bool </summary>
-    private bool Aimed = true;
+    /// <summary> 공격 준비 또는 조준 상태 확인 </summary>
+    private bool Aimed = false;
+
+    public bool AimCheck
+    {
+        get { return Aimed; }
+    }
     #endregion
 
     /***********************************************************************
     *                               Unity Events
     ***********************************************************************/
-    #region ����Ƽ �̺�Ʈ
-    /// <summary> ������ ������ �̺�Ʈ �޼��� (Awake�� Start�� ������ �ڵ带 �ۼ� �� ��) </summary>
-    private void OnValidate()
+    #region Unity Events
+    void Start()
     {
-
-    }
-
-    void Awake()
-    {
-        Stat = new CharacterStat(); // ����ü ���� ��äȭ
-        InitScripts();
+        Stat = new CharacterStat();
+        Init();
         ChangeState(STATE.CREATE);
-        _Inventory.GetComponent<RectTransform>().anchoredPosition = new Vector2(1100.0f, 110.0f);
-        _statUI.GetComponent<RectTransform>().anchoredPosition = new Vector2(-1100.0f, 110.0f);
     }
 
     void Update()
@@ -144,9 +139,9 @@ public class Player : PlayerController, BattleSystem
     /***********************************************************************
     *                               Finite-state machine
     ***********************************************************************/
-    #region ���� ���� ���
-    /// <summary> ���� ��� ���� ��ȯ �Լ� </summary>
-    /// <param name="s">����</param>
+    #region State Machine
+    /// <summary> 상태 전환 시 </summary>
+    /// <param name="s"> 플레이어 상태 </param>
     void ChangeState(STATE s)
     {
         if (myState == s) return;
@@ -156,11 +151,8 @@ public class Player : PlayerController, BattleSystem
             case STATE.NONE:
                 break;
             case STATE.CREATE:
-                InitStatClamp();
                 InitStat();
                 UpdateBackWeapon();
-                GetComponentInChildren<PlayerAnimEvent>().OnAttackKnife += OnMeleeAttack;
-                GetComponentInChildren<PlayerAnimEvent>().EndAttackKnife += EndMeleeAttack;
                 ChangeState(STATE.ALIVE);
                 break;
             case STATE.ALIVE:
@@ -175,7 +167,7 @@ public class Player : PlayerController, BattleSystem
                 break;
         }
     }
-    /// <summary> ���� ��� Update �Լ� </summary>
+    /// <summary> 상태에 따라 프로세스 진행 </summary>
     void StateProcess()
     {
         switch (myState)
@@ -184,9 +176,11 @@ public class Player : PlayerController, BattleSystem
                 break;
             case STATE.CREATE:
                 break;
-            /// <summary> Player�� ��� �ִ� ��� </summary>
             case STATE.ALIVE:
+                myAnim.SetFloat("AttackSpeed", AttackSpeed);
+                StatClamp();
                 AliveCoroutine();
+                UpdateBackWeapon();
                 InputMethods();
                 break;
             case STATE.BATTLE:
@@ -198,21 +192,20 @@ public class Player : PlayerController, BattleSystem
     #endregion
 
     /***********************************************************************
-    *                               Private Fields
+    *                               Private Methods
     ***********************************************************************/
-    #region Private �Լ�
+    #region Private 
 
     #region Init Methods
     private void InitStat()
     {
-        // �ʱ� ĳ���� �ִ� ��ġ
-        Stat.CycleSpeed = 1.0f;
-        Stat.MaxHP = 100.0f; // �ִ� ü��
-        Stat.MaxHunger = 100.0f; // �ִ� ��ⷮ
-        Stat.MaxStamina = 100.0f; // �ִ� ���׹̳�
-        Stat.MaxThirsty = 100.0f; // �ִ� ���� ��ġ
+        // 초기 최대 수치량
+        Stat.MaxHP = 100.0f;
+        Stat.MaxHunger = 100.0f;
+        Stat.MaxStamina = 100.0f;
+        Stat.MaxThirsty = 100.0f;
 
-        //�ʱ� ĳ���� ��ġ
+        // 플레이어 실제 수치량
         Stat.HP = Stat.MaxHP;
         Stat.AP = 10.0f;
         Stat.DP = 5.0f;
@@ -222,16 +215,51 @@ public class Player : PlayerController, BattleSystem
         Stat.Thirsty = Stat.MaxThirsty;
         Stat.Stamina = Stat.MaxStamina;
 
-        //�ʱ� ĳ���� �ɷ�ġ ����
+        // 플레이어 능력치 레벨
         Stat.Strength = 0;
         Stat.Constitution = 0;
         Stat.Dexterity = 0;
         Stat.Endurance = 0;
         Stat.Intelligence = 0;
+
+        // 허기, 갈증 감소 수치 및 스테미너 자연 회복 수치
+        Stat.RecoverStamina = 1.0f;
+        Stat.Minus_Hunger = 0.8f;
+        Stat.Minus_Thirsty = 1.2f;
     }
 
-    /// <summary> ĳ���� ���� ���� �ּ� �ִ밪 ���� </summary>
-    private void InitStatClamp()
+    private void OnGetWeapon()
+    {
+        if (isFirst) GetWeapon(0);
+        if (isSecond) GetWeapon(1);
+        myAnim.SetBool("isArmed", true);
+    }
+
+    private void OnAttackStart()
+    {
+        MeleeItem mi = myWeapon.GetComponentInChildren<MeleeItem>();
+        Debug.Log(Stat.DP);
+        MeleeAttack(mi.hitPoint, mi.MeleeData.DP + Stat.DP);
+    }
+    /// <summary> 초기 설정 </summary>
+    private void Init()
+    {
+        _statUI = _canvas.GetComponentInChildren<StatUI>();
+        PlayerAnimEvent AnimEvent = GetComponentInChildren<PlayerAnimEvent>();
+        AnimEvent.GetWeapon += OnGetWeapon;
+        AnimEvent.GetPistol += GetPistol;
+        AnimEvent.PutGun += PutGun;
+        AnimEvent.AnimStart += AnimStart;
+        AnimEvent.AnimEnd += AnimEnd;
+        AnimEvent.AttackStart += OnAttackStart;
+        ChangeState(STATE.CREATE);
+        Inventory._inventory.GetComponent<RectTransform>().anchoredPosition = new Vector2(1100.0f, 110.0f);
+        _statUI.GetComponent<RectTransform>().anchoredPosition = new Vector2(-1100.0f, 110.0f);
+    }
+    #endregion
+
+    /// <summary> 스탯량이 0 이하, 최대 수치 이상으로 올라가지 않도록 설정 </summary>
+    void StatClamp()
     {
         Stat.HP = Mathf.Clamp(Stat.HP, 0, Stat.MaxHP);
         Stat.Hunger = Mathf.Clamp(Stat.Hunger, 0, Stat.MaxHunger);
@@ -239,73 +267,118 @@ public class Player : PlayerController, BattleSystem
         Stat.Stamina = Mathf.Clamp(Stat.Stamina, 0, Stat.MaxStamina);
     }
 
-    /// <summary> ��ũ��Ʈ ���ε� </summary>
-    private void InitScripts()
-    {
-        _Inventory = _canvas.GetComponentInChildren<Inventory>();
-        _statUI = _canvas.GetComponentInChildren<StatUI>();
-    }
-    #endregion
-
-    /// <summary> �÷��̾� �̵� �Լ� </summary>
+    /// <summary> 키보드 Axis값에 기반하여 이동 </summary>
     void Move(float MoveSpeed)
     {
         pos.x = Input.GetAxis("Horizontal");
         pos.z = Input.GetAxis("Vertical");
 
-        base.Moving(this.transform, pos, MoveSpeed, _cameraArm);
+        base.Moving(this.transform, ref pos, MoveSpeed, _cameraArm);
 
-        base.Rotate(this.transform);
+        base.Rotate(this.transform, Aimed);
     }
 
-    /// <summary> ���� ��ƾ ���� </summary>
+    /// <summary> 플레이어 상태가 Alive일때 실행되는 코루틴 </summary>
     void AliveCoroutine()
     {
         if (aliveCycle != null) return;
         aliveCycle = StartCoroutine(AliveCycle());
     }
 
-    public void StatCalc()
-    { 
+    void GetPrimary(int index, ref bool check)
+    {
+        if (Inventory._inventory.PrimaryItems[index] != null && !check && MotionEnd)
+        {
+            check = true;
+
+            if (Inventory._inventory.PrimaryItems[index] is GunItem) myAnim.SetTrigger("GetGun");
+            else if (Inventory._inventory.PrimaryItems[index] is MeleeItem) myAnim.SetTrigger("GetAxe");
+
+            if (!myAnim.GetBool("isArmed")) myAnim.SetBool("isArmed", true);
+        }
+    }
+    void MeleeAttack(Transform hitPoint, float DP)
+    {
+        Collider[] list = Physics.OverlapSphere(hitPoint.position, 1.0f, EnemyMask);
+        foreach (Collider col in list)
+        {
+            BattleSystem bs = col.gameObject.GetComponent<BattleSystem>();
+            if (bs != null)
+            {
+                bs.OnDamage(DP);
+            }
+        }
+
+
     }
     #endregion
 
     /***********************************************************************
     *                               Public Methods
     ***********************************************************************/
-    #region Public �Լ�
-    /// <summary> �ֹ��� ���� </summary>
-    public void GetGun(int index)
+    #region Public
+    #region 무기 관련 메소드
+    public void GetWeapon(int index)
     {
-        if(myWeapon != null) Destroy(HandSorket.GetComponentInChildren<WeaponItem>().gameObject); // �տ� �ִ� ������ ����
-        if(isFirst) Destroy(BackLeftSorket.GetComponentInChildren<WeaponItem>().gameObject); // ���� � �ִ� ������ ����
-        if(isSecond) Destroy(BackRightSorket.GetComponentInChildren<WeaponItem>().gameObject); // ���� � �ִ� ������ ����
+        GameObject go = Inventory._inventory.PrimarySlots[index]._item.gameObject;
 
-        myWeapon = Instantiate(_Inventory.PrimaryItems[index].ItemPrefab, HandSorket.position, HandSorket.rotation); // Gun Object ����
-        myWeapon.transform.parent = HandSorket.transform; // Gun ������Ʈ ���Ͽ� �ڽ�ȭ
+        if (myWeapon != null) WeaponSwap(myWeapon.gameObject.transform);
+
+        if (isFirst || isSecond)
+        {
+            go.transform.parent = null;
+        }
+        //if(isSecond) // ���� � �ִ� ������ ����
+
+        myWeapon = go;
+        // Gun ������Ʈ ���Ͽ� �ڽ�ȭ
         myWeapon.layer = 0;
-        Destroy(myWeapon.GetComponent<Rigidbody>()); // �浹 ���ɼ� �ִ� ������Ʈ ����
-        Destroy(myWeapon.GetComponent<BoxCollider>()); // �浹 ���ɼ� �ִ� ������Ʈ ����
+        myWeapon.transform.parent = HandSorket.transform;
+        if (go.GetComponent<EquipmentItem>() is GunItem)
+        {
+            go.gameObject.transform.localPosition = new Vector3(-0.0006f, 0.2683f, 0.0333f);
+            go.gameObject.transform.localEulerAngles = new Vector3(84.598f, 175.911f, -90.631f);
+        }
+        if (go.GetComponent<EquipmentItem>() is MeleeItem)
+        {
+            go.gameObject.transform.localPosition = new Vector3(0.003f, 0.04f, -0.003f);
+            go.gameObject.transform.localEulerAngles = new Vector3(5.42f, 0.0f, 4.6f);
+        }
+
     }
+
 
     /// <summary> �������� ���� </summary>
     public void GetPistol()
     {
-        if (myWeapon != null) Destroy(HandSorket.GetComponentInChildren<WeaponItem>().gameObject); // �տ� �ִ� ������ ����
-        if (isFirst) Destroy(BackLeftSorket.GetComponentInChildren<WeaponItem>().gameObject); // ���� � �ִ� ������ ����
-        if (isSecond) Destroy(BackRightSorket.GetComponentInChildren<WeaponItem>().gameObject); // ���� � �ִ� ������ ����
+        if (myWeapon != null) Destroy(HandSorket.GetComponentInChildren<GunItem>().gameObject); // 이미 권총 장착 상태일때
 
-        myWeapon = Instantiate(_Inventory.SecondaryItems.ItemPrefab, HandSorket.position, HandSorket.rotation);
+
         myWeapon.transform.parent = HandSorket.transform;
         myWeapon.layer = 0;
-        Destroy(myWeapon.GetComponent<Rigidbody>()); // �浹 ���ɼ� �ִ� ������Ʈ ����
-        Destroy(myWeapon.GetComponent<BoxCollider>()); // �浹 ���ɼ� �ִ� ������Ʈ ����
+        myWeapon.GetComponent<Rigidbody>();
+        myWeapon.GetComponent<BoxCollider>();
     }
 
-    /// <summary> ���� ���� ���� </summary>
+    public void WeaponSwap(Transform Target)
+    {
+        if (isFirst)
+        {
+            Target.transform.parent = null;
+            Target.transform.position = BackRightSorket.position;
+            Target.transform.rotation = BackRightSorket.rotation;
+        }
+        else if (isSecond)
+        {
+            Target.transform.parent = null;
+            Target.transform.position = BackLeftSorket.position;
+            Target.transform.rotation = BackLeftSorket.rotation;
+        }
+    }
+    /// <summary> 총 소켓으로 넣기 </summary>
     public void PutGun()
     {
-        Destroy(HandSorket.GetComponentInChildren<WeaponItem>().gameObject); // �տ� �ִ� ������ ����
+        myWeapon.gameObject.transform.parent = null;
         myWeapon = null;
         isFirst = false;
         isSecond = false;
@@ -313,53 +386,88 @@ public class Player : PlayerController, BattleSystem
         // Armed = false;
     }
 
-    /// <summary> ���� ǥ�� ������Ʈ </summary>
+
+
+    /// <summary> 플레이어 무기 소켓 업데이트 </summary>
     public void UpdateBackWeapon()
     {
-        // 1. �� ���� 1�� ���Կ� ��� �ְ� / �� ���� 1���� ��� ���� / ù��° ���⸦ ������� �ƴ� ���
-        if (_Inventory.PrimaryItems[0] != null && BackLeftSorket.GetComponentInChildren<WeaponItem>() == null && !isFirst)
+        //  
+        if (Inventory._inventory.PrimarySlots[0]._item != null && BackLeftSorket.GetComponentInChildren<EquipmentItem>() == null && !isFirst)
         {
-            GameObject gun1 = Instantiate(_Inventory.PrimaryItems[0].ItemPrefab, BackLeftSorket); //�ֹ��� 1�� �ִ� ��� ����
-            Destroy(gun1.GetComponent<Rigidbody>()); // �浹 ���ɼ� �ִ� ������Ʈ ����
-            Destroy(gun1.GetComponent<BoxCollider>()); // �浹 ���ɼ� �ִ� ������Ʈ ����
-            gun1.layer = 0; // UI�� �������� �ʵ��� ���̾� ����
-            gun1.transform.parent = BackLeftSorket.transform; // �Ҵ�� �� ���Ͽ� �ڽ����� ����
+            GameObject gun1 = Inventory._inventory.PrimarySlots[0]._item.gameObject; // 인벤토리 슬롯 인덱스의 게임오브젝트 가져오기
+            gun1.transform.position = new Vector3(BackLeftSorket.transform.position.x, BackLeftSorket.transform.position.y, BackLeftSorket.transform.position.z);
+            gun1.transform.rotation = BackLeftSorket.rotation;
+            gun1.GetComponent<Rigidbody>().isKinematic = true; // 등 뒤 소켓으로 이동 시 충돌 방지를 위함
+            gun1.GetComponent<BoxCollider>().enabled = false; // 위와 동일
+            gun1.layer = 0;
+            gun1.transform.parent = BackLeftSorket.transform;
+            gun1.SetActive(true);
         }
-        // 2. �� ���� 2�� ���Կ� ��� �ְ� / �� ���� 2���� ��� ���� / ù��° ���⸦ ������� ���
-        if (_Inventory.PrimaryItems[1] != null && BackRightSorket.GetComponentInChildren<WeaponItem>() == null && !isSecond)
+        if (Inventory._inventory.PrimarySlots[1]._item != null && BackRightSorket.GetComponentInChildren<EquipmentItem>() == null && !isSecond)
         {
-            GameObject gun2 = Instantiate(_Inventory.PrimaryItems[1].ItemPrefab, BackRightSorket); //�ֹ��� 2�� �ִ� ��� ����
-            Destroy(gun2.GetComponent<Rigidbody>()); // �浹 ���ɼ� �ִ� ������Ʈ ����
-            Destroy(gun2.GetComponent<BoxCollider>()); // �浹 ���ɼ� �ִ� ������Ʈ ����
-            gun2.layer = 0; // UI�� �������� �ʵ��� ���̾� ����
-            gun2.transform.parent = BackRightSorket.transform; // �Ҵ�� �� ���Ͽ� �ڽ����� ����
+            GameObject gun2 = Inventory._inventory.PrimarySlots[1]._item.gameObject;
+            gun2.transform.position = new Vector3(BackRightSorket.transform.position.x, BackRightSorket.transform.position.y, BackRightSorket.transform.position.z);
+            gun2.transform.rotation = BackRightSorket.rotation;
+            gun2.GetComponent<Rigidbody>().isKinematic = true;
+            gun2.GetComponent<BoxCollider>().enabled = false;
+            gun2.layer = 0;
+            gun2.transform.parent = BackRightSorket.transform;
+            gun2.SetActive(true);
         }
-        if (_Inventory.SecondaryItems != null && PistolGrip.GetComponentInChildren<WeaponItem>() == null)
+        if (Inventory._inventory.SecondaryItem != null && PistolGrip.GetComponentInChildren<EquipmentItem>() == null)
         {
-            GameObject pistol = Instantiate(_Inventory.SecondaryItems.ItemPrefab, PistolGrip);
-            Destroy(pistol.GetComponent<Rigidbody>()); // �浹 ���ɼ� �ִ� ������Ʈ ����
-            Destroy(pistol.GetComponent<BoxCollider>()); // �浹 ���ɼ� �ִ� ������Ʈ ����
-            pistol.layer = 0; // UI�� �������� �ʵ��� ���̾� ����
-            pistol.transform.parent = PistolGrip.transform; // �Ҵ�� �㸮 ���Ͽ� �ڽ����� ����
+            GameObject pistol = Instantiate(Inventory._inventory.SecondarySlots[0].ItemProperties.ItemPrefab, PistolGrip);
+            Destroy(pistol.GetComponent<Rigidbody>());
+            Destroy(pistol.GetComponent<BoxCollider>());
+            pistol.layer = 0;
+            pistol.transform.parent = PistolGrip.transform;
         }
+    }
+
+    // 총기 장전 메소드
+    public void Reload(GunItem gi, int index)
+    {
+        AmmoItem am = Inventory._inventory.Items[index] as AmmoItem;
+        int require = gi.GunData.Capacity - gi.c_bullet;
+        int take = 0;
+        while (take < require)
+        {
+            if (am.Amount <= 0)
+            {
+                Inventory._inventory.Remove(index);
+                int next_index = Inventory._inventory.FindAmmo(am.AmmoData, index);
+                if (next_index != -1)
+                {
+                    index = next_index;
+                    am = Inventory._inventory.Items[index] as AmmoItem;
+                    continue;
+                }
+                else break;
+            }
+            take++;
+            am.Amount--;
+        }
+        StartCoroutine(TakeBullet(gi, take));
+
     }
     #endregion
 
     /***********************************************************************
     *                               Anim Methods
     ***********************************************************************/
-    #region �ִϸ��̼� �޼ҵ�
-    /// <summary> ���̾� ������ ���� �ִϸ��̼� ���� ���� Ȯ�� </summary>
+    #region Animation Methods
+    /// <summary> 특정 애니메이션 시작 시 하체 애니메이션 블랜딩 및 모션 값 True </summary>
+    /// 모션 값은 애니메이션 실행 중 다른 애니메이션이 실행되지 않도록 제어하기 위해 선언
     public void AnimStart()
     {
-        if (MotionEnd) MotionEnd = false;
-        myAnim.SetLayerWeight(1, 1.0f);
+        MotionEnd = false;
+        myAnim.SetLayerWeight(1, 0.5f);
     }
 
-    /// <summary> ���̾� ������ ���� �ִϸ��̼� ���� �� Ȯ�� </summary>
+    /// <summary> 특정 애니메이션 종료 시 하체 애니메이션 블랜딩 및 모션 값 false </summary>
     public void AnimEnd()
     {
-        if (!MotionEnd) MotionEnd = true;
+        MotionEnd = true;
         myAnim.SetLayerWeight(1, 0.0f);
     }
     #endregion
@@ -367,48 +475,47 @@ public class Player : PlayerController, BattleSystem
     /***********************************************************************
     *                               Input Methods
     ***********************************************************************/
-    #region Input �Լ�
+    #region 키보드 Input 메소드
     private void InputMethods()
     {
-        #region �̵� Input Methods
+        #region 달리기
 
-        ///<summary> �޸��� ���� Input �޼��� </summary>
+        ///<summary> 달리기 키 Down 시 달리기 조건에 맞는지 검사 후 스테미너 차감 </summary>
         if (Input.GetKeyDown(KeyCode.LeftShift))
         {
-            if (Stat.Stamina > 5.0f)
+            if (Stat.Stamina > 5.0f && !Aimed && MotionEnd)
             {
                 myAnim.SetBool("isRun", true);
-
-                // 1. ���� ������ �� �޸��� ���
+                // 1. 무기 장착 중
                 if (myAnim.GetBool("isArmed"))
                 {
-                    Stat.MoveSpeed = 2.5f;
+                    Stat.MoveSpeed = 3.5f;
                 }
-                // 2. �� ���� ������ �� �޸��� ���
+                // 2. 무기 미착용
                 else
                 {
-                    Stat.MoveSpeed = 5.0f;
+                    Stat.MoveSpeed = 4.0f;
                 }
 
                 StopCoroutine("RecoveryStamina");
                 Recovery = null;
-                if (Use != null) return;
                 Use = StartCoroutine("UseStamina");
             }
             else return;
         }
 
-        ///<summary> �޸��� ��� Input �޼��� </summary>
+
+        ///<summary> 달리기 종료 </summary>
         if (Input.GetKeyUp(KeyCode.LeftShift))
         {
             myAnim.SetBool("isRun", false);
 
-            // 1. ���� ������ �� �ȴ� ���
+            // 1. 무기 장착 중
             if (myAnim.GetBool("isArmed"))
             {
                 Stat.MoveSpeed = 1.5f;
             }
-            // 2. �� ���� ������ �� �ȴ� ���
+            // 2. 무기 미착용
             else
             {
                 Stat.MoveSpeed = 2.0f;
@@ -416,112 +523,87 @@ public class Player : PlayerController, BattleSystem
 
             StopCoroutine("UseStamina");
             Use = null;
-            if (Recovery != null) return;
             Recovery = StartCoroutine("RecoveryStamina");
         }
         #endregion
 
-        #region ���� Input Methods
-        ///<summary> ��� Input �޼��� </summary>
+        #region 공격
+        ///<summary> 공격 버튼 입력 </summary>
         if (Input.GetMouseButtonDown(0))
         {
-            // ���� ���� �� ���
-            if(myAnim.GetBool("isAiming"))
+            // 공격 준비상태 혹은 조준 상태인지 확인
+            if (myAnim.GetBool("isAiming"))
             {
-                Fire(myWeapon.GetComponent<WeaponItem>().WeaponData.Damage, Stat.AP);
+                if (MotionEnd)
+                {
+                    if (myWeapon.GetComponentInChildren<EquipmentItem>() is GunItem) Fire(myWeapon.GetComponentInChildren<GunItem>());
+                    else if (myWeapon.GetComponentInChildren<EquipmentItem>() is MeleeItem) myAnim.SetTrigger("MeleeAttack");
+                }
             }
         }
 
-        ///<summary> ���� ���� Input �޼��� </summary>
-        if (Input.GetKeyDown(KeyCode.V))
+        if (Input.GetKeyDown(KeyCode.R) && (ArmCheck() && myWeapon.gameObject.GetComponentInChildren<EquipmentItem>() is GunItem gi))
         {
-            if(MotionEnd)
+            if (MotionEnd && gi.c_bullet < gi.GunData.Capacity)
             {
-                myKnife.transform.parent = HandSorket;
-                myKnife.transform.position = HandSorket.position;
-                myKnife.transform.rotation = HandSorket.rotation * Quaternion.Euler(0.0f, 180.0f, 0.0f);
-                myAnim.SetTrigger("MeleeAttack");
-                //// ���� ���� ó��
+                int index = Inventory._inventory.FindAmmo(gi.GunData.Bullet.GetComponent<BulletMovement>().AmmoData);
+                if (index != -1)
+                {
+                    myAnim.SetTrigger("Reload");
+                    Reload(gi, index);
+                }
             }
         }
 
-        if(Input.GetKeyDown(KeyCode.R))
-        {
-            if(MotionEnd) myAnim.SetTrigger("Reload");
-
-            //// ������ ����
-        }
-
-        ///<summary> ù��° �ֹ��� ��� ��ȯ Input �޼��� </summary>
+        ///<summary> 주무기 1 버튼 </summary>
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
-            // 1. �ֹ��� 1�� ���Կ� �������� �ְ� �� ������ 1�� ���Կ� �������� �ִ� ���
-            if (_Inventory.PrimaryItems[0] != null && !isFirst && MotionEnd)
-            {
-                // if (!Armed) Armed = true;
-                if (!isFirst) isFirst = true; // ù��° �ֹ��� true
-                if (isSecond) isSecond = false; // �ι�° �ֹ��� false
-                if (isPistol) isPistol = false; // �������� false
+            // 1. 인벤토리 슬롯 1 검사
+            // 그리고 다른 애니메이션 실행 중 여부와 이미 주무기 1을 장착중인지 검사 해당 줄 프로세스는 넘버만 다르고 로직 동일
 
-                if (isFirst) myAnim.SetTrigger("GetGun"); // ���� �ִϸ��̼� ���
+            isSecond = false;
+            isPistol = false;
 
-                if (!myAnim.GetBool("isArmed")) myAnim.SetBool("isArmed", true); // ���� ���� üũ
-            }
+            GetPrimary(0, ref isFirst);
         }
-        ///<summary> �ι�° �ֹ��� ��� ��ȯ Input �޼��� </summary>
+        ///<summary> 주무기 2 버튼 </summary>
         if (Input.GetKeyDown(KeyCode.Alpha2))
         {
-            // 1. 2�� ���Կ� �������� �ִ� ���
-            if (_Inventory.PrimaryItems[1] != null && !isSecond && MotionEnd)
-            {
-                // if (!Armed) Armed = true;
-                if (isFirst) isFirst = false; // ù��° �ֹ��� false
-                if (!isSecond) isSecond = true; // �ι�° �ֹ��� true
-                if (isPistol) isPistol = false; // �������� false
+            isFirst = false;
+            isPistol = false;
 
-                if (isSecond) myAnim.SetTrigger("GetGun"); // ���� �ִϸ��̼� ���
-
-                if (!myAnim.GetBool("isArmed")) myAnim.SetBool("isArmed", true); // ���� ���°� false �� ��� true
-            }
+            GetPrimary(1, ref isSecond);
         }
-        ///<summary> �������� ��� ��ȯ Input �޼��� </summary>
+        ///<summary> 보조 무기 버튼 </summary>
         if (Input.GetKeyDown(KeyCode.Alpha3))
         {
-            // 1. 2�� ���Կ� �������� �ִ� ���
-            if (_Inventory.SecondaryItems != null && !isPistol && MotionEnd)
+            isFirst = false;
+            isSecond = false;
+            // 1. 보조 무기 슬롯 검사
+            if (Inventory._inventory.SecondaryItem != null && !isPistol && MotionEnd)
             {
                 // if (!Armed) Armed = true;
-                if (isFirst) isFirst = false; // ù��° �ֹ��� false
-                if (isSecond) isSecond = false; // �ι�° �ֹ��� false
-                if (!isPistol) isPistol = true; // �������� true
+                if (isFirst) isFirst = false;
+                if (isSecond) isSecond = false;
+                if (!isPistol) isPistol = true;
 
                 if (isPistol) myAnim.SetTrigger("GetPistol");
 
-                if(!myAnim.GetBool("isPistol")) myAnim.SetBool("isPistol", true);
+                if (!myAnim.GetBool("isPistol")) myAnim.SetBool("isPistol", true);
 
-                if (!myAnim.GetBool("isArmed")) myAnim.SetBool("isArmed", true); // ���� ���°� false �� ��� true
+                if (!myAnim.GetBool("isArmed")) myAnim.SetBool("isArmed", true);
             }
         }
 
-        ///<summary> ��� ���� Input �޼��� </summary>
+        ///<summary> 소지 중인 무기 집어넣기 </summary>
         if (Input.GetKeyDown(KeyCode.X))
         {
-            if (isFirst || isSecond || isPistol)
+            if (ArmCheck())
             {
-                if (HandSorket.GetComponentInChildren<WeaponItem>() != null && MotionEnd)
+                if (HandSorket.GetComponentInChildren<GunItem>() != null && MotionEnd)
                 {
-                    if (isFirst)
-                    {
-                        myAnim.SetTrigger("PutGun");
-                    }
-                    else if (isSecond)
-                    {
-                        myAnim.SetTrigger("PutGun");
-                    }
-                    else if (isPistol)
-                    {
-                        myAnim.SetTrigger("PutPistol");
-                    }
+                    if (isPistol) myAnim.SetTrigger("PutPistol");
+                    else myAnim.SetTrigger("PutGun");
 
                     // if (Armed) Armed = false;
                     myAnim.SetBool("isAiming", false);
@@ -531,43 +613,47 @@ public class Player : PlayerController, BattleSystem
         }
         #endregion
 
-        #region ���� ���� Input Methods
+        #region Aim Input Methods
 
-        ///<summary> ���� ���� Input �޼��� </summary>
-        if (myAnim.GetBool("isArmed") && Input.GetMouseButton(1))
+        ///<summary> 현재 무기 장착중인지 확인 후 공격 준비 상태 전환 및 조준 </summary>
+        if (Input.GetMouseButton(1) && ArmCheck())
         {
             Aimed = true;
-            myAnim.SetBool("isAiming", true);
+            if (myAnim.GetBool("isArmed")) myAnim.SetBool("isAiming", true);
         }
 
-        ///<summary> ���� ���� ���� Input �޼��� </summary>
-        if (myAnim.GetBool("isArmed") && Input.GetMouseButtonUp(1))
+
+        if (Input.GetMouseButtonUp(1))
         {
             Aimed = false;
-            myAnim.SetBool("isAiming", false);
-
+            if (myAnim.GetBool("isArmed"))
+            {
+                myAnim.SetBool("isAiming", false);
+            }
         }
+
+
         #endregion
 
         #region UI Input Methods
-        ///<summary> �κ��丮 â Ȳ��ȭ/��Ȱ��ȭ </summary>
+        ///<summary> 인벤토리 오브젝트 창 버튼 </summary>
         if (Input.GetKeyDown(KeyCode.Tab))
         {
             if (ActiveInv)
             {
-                _Inventory.GetComponent<RectTransform>().anchoredPosition = new Vector2(1100.0f, 110.0f);
+                Inventory._inventory.GetComponent<RectTransform>().anchoredPosition = new Vector2(1100.0f, 110.0f);
             }
             else
             {
-                _Inventory.GetComponent<RectTransform>().anchoredPosition = new Vector2(0.0f, 110.0f);
+                Inventory._inventory.GetComponent<RectTransform>().anchoredPosition = new Vector2(0.0f, 110.0f);
             }
             ActiveInv = !ActiveInv;
         }
 
-        ///<summary> �÷��̾� ���� â Ȱ��ȭ/��Ȱ��ȭ </summary>
+        ///<summary> 스탯 오브젝트 창 버튼  </summary>
         if (Input.GetKeyDown(KeyCode.C))
         {
-            if(ActiveStat)
+            if (ActiveStat)
             {
                 _statUI.GetComponent<RectTransform>().anchoredPosition = new Vector2(-1100.0f, 110.0f);
             }
@@ -584,63 +670,54 @@ public class Player : PlayerController, BattleSystem
     /***********************************************************************
     *                       Private BattleSystem Methods
     ***********************************************************************/
-    #region Private BattleSystem �Լ�
-    private void OnMeleeAttack()
+    #region Private BattleSystem
+    private void Fire(GunItem gi)
     {
-        
-        Collider[] list = Physics.OverlapSphere(myKnife.transform.position, 1.0f, EnemyMask);
-        foreach(Collider col in list)
+        if (gi.c_bullet > 0)
         {
-            BattleSystem bs = col.gameObject.GetComponent<BattleSystem>();
-            if (bs != null)
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(ray, out RaycastHit hit, 9999.0f))
             {
-                bs.OnDamage(Stat.AP);
+                // 총알 방향 벡터 계산
+                Vector3 dir = hit.point - myWeapon.GetComponent<GunItem>().MuzzlePoint.position;
+                dir.y = 0;
+                // 위에서 계산된 벡터의 방향으로 바라보도록 Rotation 값 할당
+                Quaternion rot = Quaternion.LookRotation(dir.normalized);
+
+                // 총 데이터에 저장되어 있는 Bullet 오브젝트 및 Effect 생성
+                Instantiate(myWeapon.GetComponent<GunItem>().GunData.Bullet, myWeapon.GetComponent<GunItem>().MuzzlePoint.position, rot);
+                Instantiate(myWeapon.GetComponent<GunItem>().GunData.Effect, myWeapon.GetComponent<GunItem>().MuzzlePoint.position, rot);
+
+                //bullet.transform.parent = null;
+
             }
+            gi.c_bullet--;
+            gi.Durability--;
         }
-    }
-
-    private void EndMeleeAttack()
-    {
-        myKnife.transform.parent = KnifeGrip;
-        myKnife.transform.position = KnifeGrip.position;
-        myKnife.transform.rotation = KnifeGrip.rotation;
-    }
-
-    private void Fire(float WeaponAP, float PlayerAP)
-    {
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if(Physics.Raycast(ray, out RaycastHit hit, 9999.0f))
+        else
         {
-            // �� ������ ���� ����
-            Vector3 dir = hit.point - myWeapon.GetComponent<WeaponItem>().MuzzlePoint.position;
-            // ���� ������ ����
-            Quaternion rot = Quaternion.LookRotation(dir.normalized);
-
-            // ������Ʈ ����
-            GameObject bullet = Instantiate(myWeapon.GetComponent<WeaponItem>().WeaponData.Bullet, myWeapon.GetComponent<WeaponItem>().MuzzlePoint.position, rot);
-
-            // �θ� ���� null
-            bullet.transform.parent = null;
-            // forward �������� �̵��ϴ� �ڷ�ƾ ȣ��
-            bullet.GetComponent<AmmoItem>().Fire(WeaponAP, PlayerAP);
+            // 빈 탄창 사운드
         }
     }
+    /// <summary> 손에 무기를 들고 있는지 체크 </summary>
+    private bool ArmCheck() { return isFirst || isSecond || isPistol; }
     #endregion
 
     /***********************************************************************
-    *                       Public BattleSystem Methods
+    *                       Public BattleSystem Interface
     ***********************************************************************/
-    #region Public BattleSystem �Լ�
+    #region 전투시스템 인터페이스
 
     public void OnDamage(float Damage)
     {
         if (myState == STATE.DEAD) return;
         myAnim.SetTrigger("Hit");
+        MotionEnd = true;
         Stat.HP -= Damage;
         if (Stat.HP <= 0) ChangeState(STATE.DEAD);
         else
         {
-             // �ǰ� �ִϸ��̼�
+
         }
     }
     public void OnCritDamage(float CritDamage)
@@ -651,7 +728,7 @@ public class Player : PlayerController, BattleSystem
         if (Stat.HP <= 0) ChangeState(STATE.DEAD);
         else
         {
-            // ũ��Ƽ�� �ǰ� �ִϸ��̼�
+
         }
     }
     public bool IsLive()
@@ -663,39 +740,42 @@ public class Player : PlayerController, BattleSystem
     /***********************************************************************
     *                               Corutine
     ***********************************************************************/
-    #region �ڷ�ƾ
+    #region 코루틴
     IEnumerator AliveCycle()
     {
         while (Stat.HP > Mathf.Epsilon)
         {
-            // ����� ��ġ 0�϶�
-            if(Stat.Hunger <= Mathf.Epsilon && Stat.Thirsty > Mathf.Epsilon)
+            // 허기가 0일때
+            if (Stat.Hunger <= Mathf.Epsilon && Stat.Thirsty > Mathf.Epsilon)
             {
-                Debug.Log(Stat.Thirsty);
-                Stat.HP -= Stat.CycleSpeed * 2f;
-                Stat.Thirsty -= Stat.CycleSpeed;
+                Stat.HP -= Stat.Minus_Hunger * 2f; // HP 감소
+                Stat.Thirsty -= Stat.Minus_Thirsty + Stat.Minus_Hunger; // 갈증 수치가 더 빠르게 줄어듦
+                Stat.Stamina += Stat.RecoverStamina;
+                yield return new WaitForSeconds(1.0f);
             }
-            // ���� ��ġ 0�϶�
+            // 갈증이 0일때
             else if (Stat.Thirsty <= Mathf.Epsilon && Stat.Hunger > Mathf.Epsilon)
             {
-                Stat.Hunger -= Stat.CycleSpeed;
-                Stat.Stamina += Stat.StaminaCycle / 2;
-                Stat.HP -= Stat.CycleSpeed;
+                Stat.HP -= Stat.Minus_Thirsty;
+                Stat.Hunger -= Stat.Minus_Thirsty; // 허기가 더 빠르게 줄어듦
+                Stat.Stamina += Stat.RecoverStamina / 2; // 스테미너가 더 늦게 참 
+                yield return new WaitForSeconds(1.0f);
             }
-            // �� �� 0�϶�
-            else if(Stat.Hunger <= Mathf.Epsilon && Stat.Thirsty <= Mathf.Epsilon)
+            // 허기, 갈증 모두 0일때
+            else if (Stat.Hunger <= Mathf.Epsilon && Stat.Thirsty <= Mathf.Epsilon)
             {
-                Stat.HP -= Stat.CycleSpeed * 5;
+                Stat.HP -= 5.0f; // 큰 폭으로 HP 감소
+                yield return new WaitForSeconds(1.0f);
             }
-            Stat.Hunger -= Stat.CycleSpeed;
-            Stat.Thirsty -= Stat.CycleSpeed;
-            Stat.Stamina += Stat.StaminaCycle;
+            Stat.Hunger -= Stat.Minus_Hunger;
+            Stat.Thirsty -= Stat.Minus_Thirsty;
+            Stat.Stamina += Stat.RecoverStamina;
             yield return new WaitForSecondsRealtime(1.0f);
         }
         ChangeState(STATE.DEAD);
     }
 
-    /// <summary> ���׹̳� �Ҹ� �ڷ�ƾ </summary>
+    /// <summary> 달리기 시 스테미너 차감 코루틴 </summary>
     IEnumerator UseStamina()
     {
         while (Stat.Stamina > 0.0f)
@@ -710,10 +790,10 @@ public class Player : PlayerController, BattleSystem
         Use = null;
     }
 
-    /// <summary> ���׹̳� ȸ�� �ڷ�ƾ </summary>
+    /// <summary> 스테미너 자연 회복 코루틴 </summary>
     IEnumerator RecoveryStamina()
     {
-        yield return new WaitForSeconds(2.0f);
+        yield return new WaitForSeconds(1.5f);
         while (Stat.Stamina < Stat.MaxStamina)
         {
             if (Stat.Stamina >= Stat.MaxStamina)
@@ -726,6 +806,14 @@ public class Player : PlayerController, BattleSystem
         Recovery = null;
     }
 
+    IEnumerator TakeBullet(GunItem gi, int take)
+    {
+        Reloading = true;
+        yield return new WaitForSeconds(2.5f);
+        gi.c_bullet += take;
+        Reloading = false;
+    }
+
     IEnumerator Dead()
     {
         Text_GameOver.GetComponent<Text>().enabled = true;
@@ -733,5 +821,5 @@ public class Player : PlayerController, BattleSystem
         SceneManager.LoadScene(0);
     }
     #endregion
-
 }
+#endregion

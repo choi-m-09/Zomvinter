@@ -8,19 +8,21 @@ public class GagueControl : MonoBehaviour
     public Slider staminaBar;
     public Slider HungerBar;
     public Slider ThirstBar;
+
+    Player _player;
     // Start is called before the first frame update
     void Start()
     {
-        
+        _player = GameObject.Find("Player").GetComponent<Player>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        HPGagueApply(Player.Stat.HP, Player.Stat.MaxHP);
-        StaminaGagueApply(Player.Stat.Stamina, Player.Stat.MaxStamina);
-        HungryGagueApply(Player.Stat.Hunger, Player.Stat.MaxHunger);
-        ThirstGagueApply(Player.Stat.Thirsty, Player.Stat.MaxThirsty);
+        HPGagueApply(_player.Stat.HP, _player.Stat.MaxHP);
+        StaminaGagueApply(_player.Stat.Stamina, _player.Stat.MaxStamina);
+        HungryGagueApply(_player.Stat.Hunger, _player.Stat.MaxHunger);
+        ThirstGagueApply(_player.Stat.Thirsty, _player.Stat.MaxThirsty);
     }
 
     private void HPGagueApply(float minStat, float MaxStat)

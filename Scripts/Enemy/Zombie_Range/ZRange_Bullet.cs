@@ -24,10 +24,9 @@ public class ZRange_Bullet : MonoBehaviour
         RaycastHit hit;
         if (Physics.Raycast(ray, out hit, BMoveSpeed, layerMask, QueryTriggerInteraction.Collide))
         {
-            Debug.Log("hit");
             BattleSystem bs = hit.collider.GetComponent<BattleSystem>();
-            Destroy(this.gameObject);
             if (bs != null) bs.OnDamage(10.0f);
+            Destroy(this.gameObject);
         }
     }
 }

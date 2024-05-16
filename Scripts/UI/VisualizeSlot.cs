@@ -6,37 +6,27 @@ using UnityEngine.UI;
 public class VisualizeSlot : MonoBehaviour
 {
     [SerializeField]
-    ///<summary> ���� Ÿ�� </summary>
     private ItemType SlotType;
 
-    #region ������Ʈ ���� ����
-    ///<summary> ������ ������ </summary>
-    private ItemData Data = null;
+    private GunItem gunItem = null;
 
-    ///<summary> ������ �̹��� ������Ʈ </summary>
+    private ItemData _itemData = null;
+
     private GameObject _itemGo;
-    ///<summary> ������ �̹��� </summary>
+
     private Image _itemImage;
 
-    ///<summary> ������ �ؽ�Ʈ ������Ʈ </summary>
     private GameObject _textGo;
-    ///<summary> ������ �ؽ�Ʈ </summary>
+
     private TMPro.TMP_Text _itemText;
-    #endregion
+
 
     /***********************************************************************
     *                               Unity Events
     ***********************************************************************/
-    #region ����Ƽ �̺�Ʈ
+    #region Unity Events
 
     /// <summary> ������ ������ �̺�Ʈ �޼��� (Awake�� Start�� ������ �ڵ带 �ۼ� �� ��) </summary>
-    private void OnValidate()
-    {
-        FindItemGo();
-        FIndTextGO();
-        GetScripts();
-    }
-
     private void Awake()
     {
         FindItemGo();
@@ -53,48 +43,48 @@ public class VisualizeSlot : MonoBehaviour
     /***********************************************************************
     *                               Private Methods
     ***********************************************************************/
-    #region Private �Լ�
+    #region Private Method
     private void ShowText() => _textGo.SetActive(true);
     private void HideText() => _textGo.SetActive(false);
 
     private void GetScripts()
     {
         _itemImage = _itemGo.GetComponent<Image>();
-        _itemText = _textGo.GetComponent<TMPro.TMP_Text>();
+        _itemText = _textGo.GetComponentInChildren<TMPro.TMP_Text>();
     }
 
-    /// <summary> ������ �����ͷκ��� �̹����� �ؽ�Ʈ�� ���� </summary>
+    /// <summary> 아이템 이미지 업데이트 </summary>
     private void UpdateIcon()
     {
-        // 1. ������ �����Ͱ� �ִ� ���
-        if (Data != null)
-        {
-            // Active�� ���� ����
-            ShowText();
-            _itemImage.sprite = Data.ItemImage;
 
-            // 1-1. ������ �����Ͱ� CountableData�� ���
-            if (Data is CountableItemData)
+        if (_itemData != null)
+        {
+
+            ShowText();
+            _itemImage.sprite = _itemData.ItemImage;
+
+            // 1-1. 수량이 있는 아이템인 경우
+            if (_itemData is CountableItemData)
             {
-                //_itemText.text = (CountableItem)((CountableItemData)Data)
+                //_itemText.text = (CountableItem)((CountableItemitem.Data)item.Data)
             }
-            // 1-2 ������ �����Ͱ� CountableData�� �ƴ� ���
+            
             else
             {
-                _itemText.text = Data.ItemName;
+                if(gunItem == null)_itemText.text = _itemData.ItemName;
+                else _itemText.text = _itemData.ItemName + " : " + gunItem.c_bullet.ToString() + "/ " + gunItem.GunData.Capacity.ToString();
             }
         }
-        // 2. ������ �����Ͱ� ���� ���
+        // 2. itemData가 없을 때 텍스트 및 이미지 비활성화
         else
         {
             _itemImage.sprite = null;
             _itemText.text = "";
-            //Deactive�� ���� ���߿�
             HideText();
         }
     }
 
-    /// <summary> _itemGo ���� ������Ʈ ã�� �޼��� </summary>
+    /// <summary> 자식에 있는 이미지 불러오기 </summary>
     private void FindItemGo()
     {
         if(_itemGo == null)
@@ -103,15 +93,13 @@ public class VisualizeSlot : MonoBehaviour
         }
     }
 
-    /// <summary> _textGo ���� ������Ʈ ã�� �޼��� </summary>
+    /// <summary> 자식에 있는 텍스트 불러오기 </summary>
     private void FIndTextGO()
     {
-        // 1. _textGo�� null �� ���
         if(_textGo == null)
         {
             _textGo = this.transform.GetChild(1).gameObject;
             
-            // 1-1. SlotType�� Primary �̰ų� Secondary �� ���
             if (this.SlotType == ItemType.Primary || this.SlotType == ItemType.Secondary)
             {
                 _textGo = _textGo.transform.GetChild(0).gameObject;
@@ -124,6 +112,10 @@ public class VisualizeSlot : MonoBehaviour
     *                               Public Methods
     ***********************************************************************/
     #region Public �Լ�
-    public void SetItemData(ItemData data) { Data = data; }
+    public void SetItemData(Slot data) 
+    {
+        if (data._item is GunItem gi) gunItem = gi; 
+        _itemData = data.ItemProperties;
+    }
     #endregion
 }

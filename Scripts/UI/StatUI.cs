@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 public class StatUI : MonoBehaviour
 {
-    #region ������Ʈ ���� ����
+    #region 스킬 포인트 변수
     [SerializeField]
     /// <summary> ��ų ����Ʈ �ؽ�Ʈ </summary>
     TMPro.TMP_Text SkillPointText;
@@ -13,7 +13,7 @@ public class StatUI : MonoBehaviour
     //List<Player.Stat>
     #endregion
 
-    #region ��ư ����
+    #region 스탯 버튼 변수
     [SerializeField]
     /// <summary> ��ư ���� </summary>
     Transform BtnArea;
@@ -21,7 +21,7 @@ public class StatUI : MonoBehaviour
     Button[] StatUpBtn;
     #endregion
 
-    #region ������ ����
+    #region 스텟 게이지 위치 변수
     [SerializeField]
     /// <summary> �� ������ ���� </summary>
     Transform StrengthGague;
@@ -50,7 +50,7 @@ public class StatUI : MonoBehaviour
     Image[] IntelligenceBar;
     #endregion
 
-    #region ���� ����
+    #region 스탯 레벨
     /// <summary> �� ���� �� </summary>
     int StrengthLevel = 0;
     /// <summary> �ǰ� ���� �� </summary>
@@ -63,13 +63,15 @@ public class StatUI : MonoBehaviour
     int IntelligenceLevel = 0;
     #endregion
 
-    /// <summary> ��ų ����Ʈ �� </summary>
-     static int SP = 0;
+    Player _player;
+
+    /// <summary> 스킬 포인트 </summary>
+    static int SP = 0;
 
     /***********************************************************************
     *                               Unity Events
     ***********************************************************************/
-    #region ����Ƽ �̺�Ʈ
+    #region
 
     void Update()
     {
@@ -80,6 +82,7 @@ public class StatUI : MonoBehaviour
 
     private void Start()
     {
+        _player = GameObject.Find("Player").GetComponent<Player>();
         StrengthBar = StrengthGague.GetComponentsInChildren<Image>();
         ConstitutionBar = ConstitutionGague.GetComponentsInChildren<Image>();
         DexterityBar = DexterityGague.GetComponentsInChildren<Image>();
@@ -116,7 +119,7 @@ public class StatUI : MonoBehaviour
     }
     private int UseSP(int Skill)
     {
-        if (SP >= 1) // ��ų����Ʈ�� 0�϶��� ��밡���� ���� ���� 
+        if (SP >= 1)
         {
             if (Skill >= 0 || Skill < 7)
             {
@@ -142,39 +145,44 @@ public class StatUI : MonoBehaviour
         return isMax;
     }
 
-    private void ApplyStrSkillLevel(int SkillLevel) // �� ���� ����
+    private void ApplyStrSkillLevel()
     {
-        Player.Stat.Strength = Player.Stat.Strength +  2; //���� ���ȿ� ��ų������ Str +2
-        Player.Stat.MaxHP = Player.Stat.MaxHP + (Player.Stat.Strength * 10 * (1 / 100));
-        Debug.Log("Str : " + Player.Stat.Strength);
-        Debug.Log("HP : " + Player.Stat.HP + "/ " + Player.Stat.MaxHP);
+        _player.Stat.Strength = _player.Stat.Strength +  2;
+        _player.Stat.DP += 10.0f;
+        Player.AttackSpeed += 0.2f;
+        Debug.Log(Player.AttackSpeed);
     }
-    private void ApplyConSkillLevel(int SkillLevel) // �ִ�ü�� ���� ���� 
+    private void ApplyConSkillLevel()   
     {
-        Player.Stat.Constitution = Player.Stat.Constitution + 2; 
-        Debug.Log("Con : " + Player.Stat.Constitution);
+        _player.Stat.Constitution = _player.Stat.Constitution + 2;
+        _player.Stat.Minus_Hunger -= 0.1f;
+        _player.Stat.MaxHP = _player.Stat.MaxHP + 10.0f;
+        Debug.Log("Con : " + _player.Stat.Constitution);
     }
-    private void ApplyDexSkillLevel(int SkillLevel) // ������ ���� ���� 
+    private void ApplyDexSkillLevel() 
     {
-        Player.Stat.Dexterity = Player.Stat.Dexterity + 2; 
-        Debug.Log("Dex : " + Player.Stat.Dexterity);
+        _player.Stat.Dexterity = _player.Stat.Dexterity + 2;
+        Debug.Log("Dex : " + _player.Stat.Dexterity);
     }
-    private void ApplyEndSkillLevel(int SkillLevel) // ���¹̳� ���� ���� 
+    private void ApplyEndSkillLevel() 
     {
-        Player.Stat.Endurance = Player.Stat.Endurance + 2; 
-        Debug.Log("End : " + Player.Stat.Endurance);
+        _player.Stat.Endurance = _player.Stat.Endurance + 2;
+        _player.Stat.Minus_Thirsty -= 0.1f;
+        _player.Stat.MaxStamina += 15.0f;
+        _player.Stat.RecoverStamina += 0.5f;
+        Debug.Log("End : " + _player.Stat.Endurance);
     }
-    private void ApplyIntSkillLevel(int SkillLevel) // ���� ���� ���� 
+    private void ApplyIntSkillLevel() 
     {
-        Player.Stat.Intelligence = Player.Stat.Intelligence + 2;
-        Debug.Log("Int : " + Player.Stat.Intelligence);
+        _player.Stat.Intelligence += 1;
+        FindObjectOfType<CraftManual>().Possible_Craft(_player.Stat.Intelligence);
     }
     #endregion
 
     /***********************************************************************
     *                               Public Methods
     ***********************************************************************/
-    #region Public �Լ�
+    #region Public
     public void AddSP(int amount)
     {
         SP += amount;
@@ -184,7 +192,7 @@ public class StatUI : MonoBehaviour
     /***********************************************************************
     *                               Button Listener
     ***********************************************************************/
-    #region ��ư ������
+    #region
     /// <summary> �� ���� �� - ��ư ������ </summary>
     public void StrengthUp()
     {
@@ -193,8 +201,7 @@ public class StatUI : MonoBehaviour
             StrengthLevel = UseSP(StrengthLevel);
             StrengthBar[StrengthLevel - 1].color = Color.red;
             DeActiveSkillBtn(0, StrengthLevel);
-
-            ApplyStrSkillLevel(StrengthLevel); //��ų ������ �� �÷��̾� ����.���� ��½�Ŵ 
+            ApplyStrSkillLevel(); 
         }
     }
 
@@ -206,7 +213,7 @@ public class StatUI : MonoBehaviour
             ConstitutionLevel = UseSP(ConstitutionLevel);
             ConstitutionBar[ConstitutionLevel - 1].color = Color.red;
             DeActiveSkillBtn(1, ConstitutionLevel);
-            ApplyConSkillLevel(ConstitutionLevel); 
+            ApplyConSkillLevel(); 
         }
     }
 
@@ -218,7 +225,7 @@ public class StatUI : MonoBehaviour
             DexterityLevel = UseSP(DexterityLevel);
             DexterityBar[DexterityLevel - 1].color = Color.red;
             DeActiveSkillBtn(2, DexterityLevel);
-            ApplyDexSkillLevel(DexterityLevel);
+            ApplyDexSkillLevel();
         }
     }
 
@@ -230,7 +237,7 @@ public class StatUI : MonoBehaviour
             EnduranceLevel = UseSP(EnduranceLevel);
             EnduranceBar[EnduranceLevel - 1].color = Color.red;
             DeActiveSkillBtn(3, EnduranceLevel);
-            ApplyEndSkillLevel(EnduranceLevel);
+            ApplyEndSkillLevel();
         }
     }
 
@@ -242,7 +249,7 @@ public class StatUI : MonoBehaviour
             IntelligenceLevel = UseSP(IntelligenceLevel);
             IntelligenceBar[IntelligenceLevel - 1].color = Color.red;
             DeActiveSkillBtn(4, IntelligenceLevel);
-            ApplyIntSkillLevel(IntelligenceLevel);
+            ApplyIntSkillLevel();
         }
     }
     #endregion

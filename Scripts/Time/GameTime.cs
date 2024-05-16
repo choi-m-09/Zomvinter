@@ -7,7 +7,7 @@ public class GameTime : GameUtil
 {
     
     public Text TestTime;
-    public float TimeScale;// ½Ã°£ Èå¸§ Á¶Á¤
+    public float TimeScale;// ï¿½Ã°ï¿½ ï¿½å¸§ ï¿½ï¿½ï¿½ï¿½
     // Start is called before the first frame update
     void Start()
     {

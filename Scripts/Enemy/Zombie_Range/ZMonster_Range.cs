@@ -5,35 +5,19 @@ using UnityEngine.Events;
 
 public class ZMonster_Range : ZMoveController, BattleSystem
 {
-    ZSensor _sensor = null;
-    ZSensor mySensor
-    {
-        get
-        {
-            if (_sensor == null)
-            {
-                _sensor = this.GetComponentInChildren<ZSensor>();
-            }
-            return _sensor;
-        }
-    }
 
-
-
-    /* Àü¿ª º¯¼ö -----------------------------------------------------------------------------------------------*/
-
-    /// <summary> ³» Å¸°Ù ¿ÀºêÁ§Æ® ·¹ÀÌ¾î </summary>
-    public LayerMask EnemyMask;
-    /// <summary> ³» Å¸°Ù ¿ÀºêÁ§Æ® À§Ä¡ °ª </summary>
+    /// <summary> ì  ë ˆì´ì–´ ë§ˆìŠ¤í¬ </summary>
+    LayerMask EnemyMask;
+    /// <summary> ì¶”ê²©í•  ìƒëŒ€ </summary>
     public Transform myTarget = null;
 
-    /// <summary> ³» °ø°İ ÆÇÁ¤ ¿ÀºêÁ§Æ® À§Ä¡°ª </summary>
+    /// <summary> ê³µê²© ê´€ë ¨ í•„ë“œ </summary>
     public Transform myWeapon;
     public Transform BTarget;
     public GameObject Bullet;
     public float BMoveSpeed;
 
-    /// <summary> Ä³¸¯ÅÍ Á¤º¸ ±¸Á¶Ã¼ ¼±¾ğ </summary>
+    /// <summary> ì¢€ë¹„ ì •ë³´ ë° ìŠ¤í…Ÿ </summary>
     MonsterData myData;
     [SerializeField]
     CharacterStat myStat;
@@ -41,17 +25,11 @@ public class ZMonster_Range : ZMoveController, BattleSystem
     public int rnd;
     //bool AttackTerm = false;
 
-    /* À¯ÇÑ »óÅÂ ±â°è -----------------------------------------------------------------------------------------------*/
-
-    /// <summary> À¯ÇÑ »óÅÂ ±â°è ¼±¾ğ </summary>
-    enum STATE
-    {
-        CREATE, IDLE, ROAM, BATTLE, DEAD
-    }
+    /// <summary> ìƒíƒœ ê¸°ê³„ </summary>
     [SerializeField]
     STATE myState;
 
-    /// <summary> À¯ÇÑ »óÅÂ ±â°è Start </summary>
+    /// <summary> ìƒíƒœ ë³€í™” ì‹œ í˜¸ì¶œ </summary>
     void ChangeState(STATE s)
     {
         if (myState == s) return;
@@ -59,18 +37,7 @@ public class ZMonster_Range : ZMoveController, BattleSystem
         switch (myState)
         {
             case STATE.CREATE:
-                break;
-            case STATE.IDLE:
-                myStat.HP = 1000.0f;
-                BMoveSpeed = 15.0f;
-                myStat.MoveSpeed = 2.5f;
-                myStat.TurnSpeed = 180.0f;
-                myData.AttRange = 6.0f;
-                myData.AttDelay = 2.5f;
-                myData.AttSpeed = 1.0f;
-                myData.UnChaseTime = 3.0f;
-                myStat.DP = 8.0f;
-                EnemyMask = LayerMask.GetMask("Player");
+                Init();
                 ChangeState(STATE.ROAM);
                 break;
             case STATE.ROAM:
@@ -90,36 +57,45 @@ public class ZMonster_Range : ZMoveController, BattleSystem
         }
     }
 
-    /// <summary> À¯ÇÑ »óÅÂ ±â°è Update </summary>
+    /// <summary> ìƒíƒœ í™•ì¸ í›„ í”„ë ˆì„ ë§ˆë‹¤ í˜¸ì¶œ </summary>
     void StateProcess()
     {
         switch (myState)
         {
             case STATE.CREATE:
                 break;
-            case STATE.IDLE:
-                break;
             case STATE.ROAM:
                 FindTarget();
                 break;
             case STATE.BATTLE:
                 ChaseTarget();
-                //OnAttack();
                 break;
             case STATE.DEAD:
                 break;
         }
     }
-    /* ½ÇÇà ÇÔ¼ö -----------------------------------------------------------------------------------------------*/
 
-    void Start()
+    void Init()
     {
-        ChangeState(STATE.IDLE); // À¯ÇÑ »óÅÂ ±â°è ÃÊ±âÈ­
-
-        /// µô¸®°ÔÀÌÆ® Ãß°¡ ///
+        myStat.HP = 1000.0f;
+        BMoveSpeed = 15.0f;
+        myStat.MoveSpeed = 2.5f;
+        myStat.TurnSpeed = 180.0f;
+        myData.AttRange = 6.0f;
+        myData.AttDelay = 2.5f;
+        myData.AttSpeed = 1.0f;
+        myStat.DP = 8.0f;
+        EnemyMask = LayerMask.GetMask("Player");
+        BTarget = GameObject.Find("Player").transform;
         GetComponentInChildren<AnimEvent>().AttackStart += OnAttackStart;
         GetComponentInChildren<AnimEvent>().AttackEnd += OnAttackEnd;
         GetComponentInChildren<AnimEvent>().RangeAttack += OnRangeAttack;
+    }
+
+
+    void Start()
+    {
+        ChangeState(STATE.CREATE); 
     }
 
     void Update()
@@ -127,19 +103,17 @@ public class ZMonster_Range : ZMoveController, BattleSystem
         StateProcess();
     }
 
-    /* ¹èÆ² ½Ã½ºÅÛ - °ø°İ -----------------------------------------------------------------------------------------------*/
-    /// <summary> °ø°İ ÆÇÁ¤ ÇÔ¼ö </summary>
-    void OnAttack()
+    protected override void OnAttack()
     {
-        
+        // ê·¼ì ‘ ê³µê²©    
     }
-    /// <summary> °ø°İ ¾Ö´Ï¸ŞÀÌ¼Ç ½ÃÀÛ ÁöÁ¡ Ã¼Å© ÇÔ¼ö </summary>
+    /// <summary> ê³µê²© ì• ë‹ˆë©”ì´ì…˜ ì‹œì‘ </summary>
     void OnAttackStart()
     {
         myAnim.SetBool("AttackTerm", true);
         OnAttack();
     }
-    /// <summary> °ø°İ ¾Ö´Ï¸ŞÀÌ¼Ç ³¡ ÁöÁ¡ Ã¼Å© ÇÔ¼ö </summary>
+    /// <summary> ê³µê²© ì• ë‹ˆë©”ì´ì…˜ ë </summary>
     void OnAttackEnd()
     {
         myAnim.SetBool("AttackTerm", false);
@@ -150,15 +124,14 @@ public class ZMonster_Range : ZMoveController, BattleSystem
         Transform Target = BTarget;
         StartCoroutine(BulletMove(Target.position));
     }
-    /* ¹èÆ² ½Ã½ºÅÛ - ÇÇ°İ -----------------------------------------------------------------------------------------------*/
-    /// <summary> ÇÇ°İ ÇÔ¼ö </summary>
+    
     public void OnDamage(float Damage)
     {
         if (myState == STATE.DEAD) return;
         myStat.HP -= Damage;
         if (myStat.HP <= 0) ChangeState(STATE.DEAD);
     }
-    /// <summary> Å©¸®Æ¼ÄÃ ÇÇ°İ ÇÔ¼ö </summary>
+
     public void OnCritDamage(float CritDamage)
     {
 
@@ -168,14 +141,12 @@ public class ZMonster_Range : ZMoveController, BattleSystem
     {
         return true;
     }
-    /* Áö¿ª ÇÔ¼ö -----------------------------------------------------------------------------------------------*/
+   
 
-    /// <summary> Å¸°Ù °Ë»ö ÇÔ¼ö </summary>
     protected void FindTarget()
     {
         if (mySensor.myEnemy != null)
         {
-            //if (UnChaseCor != null) StopAllCoroutines();
             myTarget = mySensor.myEnemy.transform;
             ChangeState(STATE.BATTLE);
         }
@@ -193,17 +164,9 @@ public class ZMonster_Range : ZMoveController, BattleSystem
         pos.z = transform.position.z + Random.Range(-5.0f, 5.0f);
         base.RoamToPosition(pos, myStat.MoveSpeed, myStat.TurnSpeed, () => StartCoroutine(Waitting(Random.Range(1.0f, 3.0f), Roaming)));
     }
-
-    IEnumerator Waitting(float t, UnityAction done)
-    {
-        yield return new WaitForSeconds(t);
-        done?.Invoke();
-    }
-
-    /// <summary> Å¸°Ù Ãß°İ ÇÔ¼ö </summary>
+    /// <summary> í”Œë ˆì´ì–´ ì¶”ì  </summary>
     private void ChaseTarget()
     {
-        //Å¸°ÙPos, ÀÌµ¿ ¼Óµµ, °ø°İ °Å¸®, °ø°İ µô·¹ÀÌ, °ø°İ ¼Óµµ, ÅÏ ¼Óµµ
         if (mySensor.myEnemy != null)
         {
             MoveToPosition(myTarget.transform, myStat.MoveSpeed,
@@ -216,6 +179,7 @@ public class ZMonster_Range : ZMoveController, BattleSystem
         }
     }
 
+    /// <summary> ì›ê±°ë¦¬ ê³µê²© ì‹œ ìƒì„±ë˜ëŠ” Bullet ë¬´ë¸Œë¨¼íŠ¸ ì½”ë£¨í‹´ </summary>
     IEnumerator BulletMove(Vector3 pos)
     {
         GameObject obj = Instantiate(Bullet, myWeapon.position, myWeapon.rotation);
@@ -225,6 +189,7 @@ public class ZMonster_Range : ZMoveController, BattleSystem
         
         while (Dist > Mathf.Epsilon)
         {
+            if (obj == null) yield break;
             float delta = BMoveSpeed * Time.deltaTime;
             if(Dist < delta)
             {
@@ -234,7 +199,6 @@ public class ZMonster_Range : ZMoveController, BattleSystem
             Dist -= delta;
             yield return null;
         }
-        Destroy(obj);
     }
 
     IEnumerator Death()

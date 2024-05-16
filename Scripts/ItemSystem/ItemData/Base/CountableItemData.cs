@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary> ╪© ╪Ж юж╢б ╬фюлеш ╣╔юлем </summary>
+/// <summary> О©╫О©╫ О©╫О©╫ О©╫ж╢О©╫ О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫ </summary>
 public abstract class CountableItemData : ItemData
 {
     public int MaxAmount => _maxAmount;

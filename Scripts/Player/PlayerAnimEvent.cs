@@ -5,85 +5,53 @@ using UnityEngine.Events;
 
 public class PlayerAnimEvent : MonoBehaviour
 {
-    #region ÂüÁ¶ ¿µ¿ª
-    Player _player;
-    #endregion
 
-    #region µô¸®°ÔÀÌÆ® ¿µ¿ª
-    public event UnityAction OnAttackKnife = null;
-    public event UnityAction EndAttackKnife = null;
-    public event UnityAction GetRifle = null;
+    #region ë¸ë¦¬ê²Œì´íŠ¸ í•„ë“œ
+    public event UnityAction GetWeapon = null;
     public event UnityAction GetPistol = null;
     public event UnityAction PutGun = null;
     public event UnityAction AnimStart = null;
     public event UnityAction AnimEnd = null;
-    #endregion
-
-    public Transform Knife; // Ä®(±ÙÁ¢¹«±â)
-
-    /***********************************************************************
-    *                               Unity Events
-    ***********************************************************************/
-    #region À¯´ÏÆ¼ ÀÌº¥Æ®
-    private void Awake()
-    {
-        _player = this.GetComponentInParent<Player>();
-    }
+    public event UnityAction AttackStart = null;
     #endregion
 
     /***********************************************************************
     *                               Anim Events
     ***********************************************************************/
-    #region ¾Ö´Ï¸ŞÀÌ¼Ç ÀÌº¥Æ®
-    /// <summary> ±ÙÁ¢ °ø°İ ¾Ö´Ï¸ŞÀÌ¼Ç ½ÃÀÛ </summary>
-    public void StartStabbing()
+
+    /// <summary> ì£¼ë¬´ê¸° ì¥ì°© ì‹œ ë¸ë¦¬ê²Œì´íŠ¸ í˜¸ì¶œ </summary>
+    public void OnGetWeapon()
     {
-        OnAttackKnife?.Invoke();
+        GetWeapon?.Invoke();
     }
 
-    /// <summary> ±ÙÁ¢ °ø°İ ¾Ö´Ï¸ŞÀÌ¼Ç ³¡ </summary>
-    public void EndStabbing()
-    {
-        EndAttackKnife?.Invoke();
-    }
-
-    /// <summary> ÁÖ¹«±â ÀåÂø </summary>
-    public void OnGetRifle()//ÃÑ ²¨³»µå´Â ¾Ö´Ï¸ŞÀÌ¼Ç¿¡ ÀÛµ¿
-    {
-        GetRifle?.Invoke();
-        if (_player.isFirst) _player.GetGun(0); // ÁÖ¹«Àå 1¹øÂ° ½½·ÔÀÇ ¾ÆÀÌÅÛÀ» Hand ¼ÒÄÏ¿¡ »ı¼º
-        if (_player.isSecond) _player.GetGun(1); // ÁÖ¹«Àå 2¹øÂ° ½½·ÔÀÇ ¾ÆÀÌÅÛÀ» Hand ¼ÒÄÏ¿¡ »ı¼º
-        _player.UpdateBackWeapon(); // ¹é ¼ÒÄÏ ¾÷µ¥ÀÌÆ®
-    }
-
-    /// <summary> º¸Á¶¹«±â ÀåÂø </summary>
+    /// <summary> ë³´ì¡°ë¬´ê¸° ì¥ì°© ì‹œ ë¸ë¦¬ê²Œì´íŠ¸ í˜¸ì¶œ </summary>
     public void OnGetPistol()
     {
         GetPistol?.Invoke();
-        _player.GetPistol(); // ºÎ¹«Àå ½½·ÔÀÇ ¾ÆÀÌÅÛÀ» Hand ¼ÒÄÏ¿¡ »ı¼º
-        _player.UpdateBackWeapon(); // ¹é ¼ÒÄÏ ¾÷µ¥ÀÌÆ®
     }
 
-    /// <summary> ¹«Àå ÇØÁ¦ </summary>
+    /// <summary> ì£¼ë¬´ê¸° íƒˆì°© ì‹œ ë¸ë¦¬ê²Œì´íŠ¸ í˜¸ì¶œ</summary>
     public void OnPutGun()
     {
         PutGun?.Invoke();
-        _player.PutGun();
-        _player.UpdateBackWeapon(); // ¹é ¼ÒÄÏ ¾÷µ¥ÀÌÆ®
     }
-
-    /// <summary> ¾Ö´Ï¸ŞÀÌ¼Ç µ¿ÀÛ ½ÃÀÛ </summary>
+    
+    /// <summary> ì• ë‹ˆë©”ì´ì…˜ ì‹œì‘ ì‹œ ë¸ë¦¬ê²Œì´íŠ¸ í˜¸ì¶œ </summary>
     public void OnAnimStart()
     {
         AnimStart?.Invoke();
-        _player.AnimStart();
     }
 
-    /// <summary> ¾Ö´Ï¸ŞÀÌ¼Ç µ¿ÀÛ ³¡ </summary>
+    /// <summary> ì• ë‹ˆë©”ì´ì…˜ ì™„ë£Œ ì‹œ ë¸ë¦¬ê²Œì´íŠ¸ í˜¸ì¶œ  </summary>
     public void OnAnimEnd()
     {
         AnimEnd?.Invoke();
-        _player.AnimEnd();
     }
-    #endregion
+
+    /// <summary> ê·¼ì ‘ ë¬´ê¸° ê³µê²© ì‹œ ë¸ë¦¬ê²Œì´íŠ¸ í˜¸ì¶œ </summary>
+    public void OnAttackStart()
+    {
+        AttackStart?.Invoke();
+    }
 }

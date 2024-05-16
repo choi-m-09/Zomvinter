@@ -2,21 +2,27 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary> ¼ö·®À» ¼¿ ¼ö ÀÖ´Â ¾ÆÀÌÅÛ </summary>
+/// <summary> ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ </summary>
 public abstract class CountableItem : Item
 {
     public CountableItemData CountableData { get; set; }
 
-    /// <summary> ÇöÀç ¾ÆÀÌÅÛ °³¼ö </summary>
-    public int Amount { get; protected set; }
+    /// <summary> ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ </summary>
 
-    /// <summary> ÇÏ³ªÀÇ ½½·ÔÀÌ °¡Áú ¼ö ÀÖ´Â ÃÖ´ë °³¼ö(±âº» 99) </summary>
+    private int amount;
+    public int Amount
+    {
+        get { return amount; }
+        set { amount = value; }
+    }
+
+    /// <summary> í•´ë‹¹ ì˜¤ë¸Œì íŠ¸ ìµœëŒ€ ê°œìˆ˜ ê°’ ë¦¬í„´ </summary>
     public int MaxAmount => CountableData.MaxAmount;
 
-    /// <summary> ¼ö·®ÀÌ °¡µæ Ã¡´ÂÁö ¿©ºÎ </summary>
+    /// <summary> ìµœëŒ€ ê°œìˆ˜ì¸ì§€ ì²´í¬ </summary>
     public bool IsMax => Amount >= CountableData.MaxAmount;
 
-    /// <summary> °³¼ö°¡ ¾ø´ÂÁö ¿©ºÎ </summary>
+    /// <summary> ìˆ˜ëŸ‰ 0ì¸ì§€ ê²€ì‚¬ </summary>
     public bool IsEmpty => Amount <= 0;
 
     public CountableItem(CountableItemData data, int amount = 1) : base(data)
@@ -25,35 +31,14 @@ public abstract class CountableItem : Item
         SetAmount(amount);
     }
 
-    /// <summary> °³¼ö ÁöÁ¤(¹üÀ§ Á¦ÇÑ) </summary>
+    private void Start()
+    {
+        SetAmount(amount);
+    }
+
+    /// <summary> ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½) </summary>
     public void SetAmount(int amount)
     {
         Amount = Mathf.Clamp(amount, 0, MaxAmount);
     }
-
-    /* --------------------------------------------------------------------------------- */
-
-    /// <summary> °³¼ö Ãß°¡ ¹× ÃÖ´ëÄ¡ ÃÊ°ú·® ¹İÈ¯(ÃÊ°ú·® ¾øÀ» °æ¿ì 0) </summary>
-    public int AddAmountAndGetExcess(int amount)
-    {
-        int nextAmount = Amount + amount;
-        SetAmount(nextAmount);
-
-        return (nextAmount > MaxAmount) ? (nextAmount - MaxAmount) : 0;
-    }
-
-    /// <summary> °³¼ö¸¦ ³ª´©¾î º¹Á¦ </summary>
-    public CountableItem SeperateAndClone(int amount)
-    {
-        // ¼ö·®ÀÌ ÇÑ°³ ÀÌÇÏÀÏ °æ¿ì, º¹Á¦ ºÒ°¡
-        if (Amount <= 1) return null;
-
-        if (amount > Amount - 1)
-            amount = Amount - 1;
-
-        Amount -= amount;
-        return Clone(amount);
-    }
-
-    protected abstract CountableItem Clone(int amount);
 }

@@ -3,30 +3,39 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 //LJM
-public class ZMoveController : Character
+public abstract class ZMoveController : Character
 {
-    /* Áö¿ª º¯¼ö -----------------------------------------------------------------------------------------------*/
+    ZSensor _sensor = null;
 
-    /* ½ÃÀÛ ÇÔ¼ö -----------------------------------------------------------------------------------------------*/
-    void Start()
+    public ZSensor mySensor
     {
-       
+        get
+        {
+            if (_sensor == null)
+            {
+                _sensor = this.GetComponentInChildren<ZSensor>();
+            }
+            return _sensor;
+        }
     }
 
-    void Update()
+    /// <summary> ì¢€ë¹„ ìƒíƒœ </summary>
+    protected enum STATE
     {
-       
+        NONE, CREATE, ROAM, BATTLE, RUSH, DEAD
     }
 
-    /* ½Ì¼Ó ÇÔ¼ö -----------------------------------------------------------------------------------------------*/
+    protected abstract void OnAttack();
 
-    /// <summary> °¢ ÀÎÀÚÀÇ ¼Ó¼º¿¡ ¸Â°Ô °´Ã¼¸¦ TransformÀÇ À§Ä¡·Î ÀÌµ¿½ÃÅ°´Â ÄÚ·çÆ¾À» ½ÇÇà </summary>
-    /// <param name="Target">Transform °ªÀÇ À§Ä¡·Î ÀÌµ¿</param>
-    /// <param name="MoveSpeed"> Transform °´Ã¼ÀÇ ÀÌµ¿ ¼Óµµ</param>
-    /// <param name="AttRange"> this °´Ã¼ÀÇ °ø°İ °¡´É ¹üÀ§ </param>
-    /// <param name="AttDelay"> this °´Ã¼ÀÇ °ø°İ °£°İ </param>
-    /// <param name="AttSpeed"> ¹Ì »ç¿ë ÀÎÀÚ </param>
-    /// <param name="TurnSpeed">this °´Ã¼ÀÇ È¸Àü ¼Óµµ </param>
+    /// <param name="Target"> ëª©ì ì§€ ìœ„ì¹˜ </param>
+    /// <param name="MoveSpeed"> ì´ë™ ì†ë„ </param>
+    /// <param name="AttRange"> ê³µê²© ê±°ë¦¬ </param>
+    /// <param name="AttDelay"> ê³µê²© ë”œë ˆì´ </param>
+    /// <param name="AttSpeed"> ê³µê²© ì†ë„ </param>
+    /// <param name="TurnSpeed"> íšŒì „ ì†ë„ </param>
+    
+    Coroutine MoveRoutine = null;
+    Coroutine RoamRoutine;
     protected void MoveToPosition(Transform Target,float MoveSpeed, float AttRange, float AttDelay, float AttSpeed, float TurnSpeed)
     {
         //myAnim.SetBool("IsMoving", true);
@@ -36,20 +45,16 @@ public class ZMoveController : Character
         RotRoutine = StartCoroutine(Rotating(Target.position, TurnSpeed));
     }
 
-    /* ÀÌµ¿ ÄÚ·çÆ¾ -----------------------------------------------------------------------------------------------*/
 
-    Coroutine MoveRoutine = null;
     protected IEnumerator Chasing(Vector3 pos,float MoveSpeed, float AttackRange, float AttackDelay, float AttackSpeed)
     {
         Vector3 Dir = pos - this.transform.position;
         float Dist = Dir.magnitude;
         Dir.Normalize();
         float AttTime = AttackDelay;
-
-        //While Á¶°Ç¹®À¸·Î Aggro ÇØÁ¦ Á¶°Ç »ğÀÔ
         while (true)
         {
-            //°ø°İ °Å¸® À¯Áö
+            // ê³µê²© ì‚¬ê±°ë¦¬ ë„ë‹¬ ì „
             if (Dist > AttackRange)
             {
                 if (myAnim.GetBool("IsAttacking") == false)
@@ -72,17 +77,6 @@ public class ZMoveController : Character
                     AttTime += Time.deltaTime;
                     if (AttackDelay <= AttTime)
                     {
-                        //Debug.Log(AttackTime);
-                        /*if(·£´ı ³­¼ö)
-                         * {
-                         * Å©¸®Æ¼ÄÃ È®·ü Anim
-                         * }
-                         * else 
-                         * {
-                         * ÀÏ¹İ °ø°İ È®·ü Anim
-                         * }
-                         */
-
                         myAnim.SetTrigger("Attack");
                         AttTime = 0.0f;
                     }
@@ -100,7 +94,6 @@ public class ZMoveController : Character
         RotRoutine = StartCoroutine(Rotating(pos, TurnSpeed));
     }
 
-    Coroutine RoamRoutine;
 
     protected IEnumerator Roaming(Vector3 pos, float MoveSpeed, UnityAction done)
     {
@@ -125,12 +118,9 @@ public class ZMoveController : Character
         yield return null;
     }
 
-    /* È¸Àü ÄÚ·çÆ¾ -----------------------------------------------------------------------------------------------*/
-
     protected Coroutine RotRoutine = null;
     protected IEnumerator Rotating(Vector3 pos, float TurnSpeed)
     {
-        //ÁöÁ¡ ¹æÇâ º¤ÅÍ
         Vector3 _Dir = (pos - this.transform.position).normalized;
         CalcAngle(this.transform.forward, _Dir, this.transform.right, out ROTATEDATA data);
 
@@ -145,6 +135,13 @@ public class ZMoveController : Character
             yield return null;
         }
         RotRoutine = null;
+    }
+
+    /// <summary> í”Œë ˆì´ì–´ ë¯¸ë°œê²¬ ì‹œ ë¡œë° í…€ì„ ë‘ê¸° ìœ„í•œ ì½”ë£¨í‹´ </summary>
+    protected IEnumerator Waitting(float t, UnityAction done)
+    {
+        yield return new WaitForSeconds(t);
+        done?.Invoke();
     }
     /*-----------------------------------------------------------------------------------------------*/
 }

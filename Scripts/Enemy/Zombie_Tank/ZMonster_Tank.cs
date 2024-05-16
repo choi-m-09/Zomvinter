@@ -5,19 +5,6 @@ using UnityEngine.Events;
 
 public class ZMonster_Tank : ZMoveController, BattleSystem
 {
-    ZSensor _sensor = null;
-    
-    ZSensor mySensor
-    {
-        get
-        {
-            if (_sensor == null)
-            {
-                _sensor = this.GetComponentInChildren<ZSensor>();
-            }
-            return _sensor;
-        }
-    }
 
     /// <summary> �� Ÿ�� ������Ʈ ���̾� </summary>
     LayerMask EnemyMask;
@@ -29,12 +16,14 @@ public class ZMonster_Tank : ZMoveController, BattleSystem
 
     /// <summary> ĳ���� ���� ����ü ���� </summary>
     MonsterData myData;
-    public CharacterStat myStat;
+
+    [SerializeField] CharacterStat myStat;
+
     float SkillTime = 0.0f;
-    [SerializeField]
-    float SkillDelay;
-    [SerializeField]
-    float ShakeForce = 0f;
+
+    [SerializeField] float SkillDelay;
+
+    [SerializeField] float ShakeForce = 0f;
 
     Vector3 RushTarget;
 
@@ -43,20 +32,13 @@ public class ZMonster_Tank : ZMoveController, BattleSystem
 
     Vector3 CameraPos;
 
-    [SerializeField] [Range(0.01f, 0.1f)] float shakeRange = 0.05f;
-    [SerializeField] [Range(0.1f, 1f)] float duration = 0.5f;
-    //bool AttackTerm = false;
+    [SerializeField][Range(0.01f, 0.1f)] float shakeRange = 0.05f;
 
-    /* ���� ���� ��� -----------------------------------------------------------------------------------------------*/
+    [SerializeField][Range(0.1f, 1f)] float duration = 0.5f;
 
-    /// <summary> ���� ���� ��� ���� </summary>
-    enum STATE
-    {
-        CREATE, ROAM, BATTLE, RUSH, DEAD
-    }
-    [SerializeField]
-    STATE myState;
+    [SerializeField] STATE myState;
 
+    /// <summary> 상태 변경 </summary>
     void ChangeState(STATE s)
     {
         if (myState == s) return;
@@ -64,12 +46,14 @@ public class ZMonster_Tank : ZMoveController, BattleSystem
         switch (myState)
         {
             case STATE.CREATE:
+                Init();
+                ChangeState(STATE.ROAM);
                 break;
             case STATE.ROAM:
                 myAnim.SetBool("isMoving", false);
                 myTarget = null;
                 StopAllCoroutines();
-                StartCoroutine(Waitting(Random.Range(1.0f, 3.0f), Roaming));
+                StartCoroutine(base.Waitting(Random.Range(1.0f, 3.0f), Roaming));
                 RushTarget = Vector3.zero;
                 break;
             case STATE.BATTLE:
@@ -92,7 +76,7 @@ public class ZMonster_Tank : ZMoveController, BattleSystem
         }
     }
 
-    /// <summary> ���� ���� ��� Update </summary>
+    /// <summary> 상태 진행 </summary>
     void StateProcess()
     {
         switch (myState)
@@ -104,7 +88,6 @@ public class ZMonster_Tank : ZMoveController, BattleSystem
                 break;
             case STATE.BATTLE:
                 ChaseTarget();
-                //OnAttack();
                 break;
             case STATE.RUSH:
                 RushCoroutine();
@@ -113,81 +96,73 @@ public class ZMonster_Tank : ZMoveController, BattleSystem
                 break;
         }
     }
-    // Start is called before the first frame update
+
     void Start()
     {
+        ChangeState(STATE.CREATE);
+    }
+
+
+    void Update()
+    {
+        StateProcess();
+    }
+
+    void Init()
+    {
+        myStat = new CharacterStat();
+        GetComponentInChildren<AnimEvent>().AttackStart += OnAttackStart;
+        GetComponentInChildren<AnimEvent>().IsRushing += IsRushing;
+        GetComponentInChildren<AnimEvent>().endRush += EndRush;
+        GetComponentInChildren<AnimEvent>().Camerashake += CameraShake;
+        MainCamera = Camera.main;
+
         myStat.HP = 800.0f;
         myStat.MoveSpeed = 3.0f;
         myStat.TurnSpeed = 180.0f;
         myData.AttRange = 1.8f;
         myData.AttDelay = 1.5f;
         myData.AttSpeed = 1.0f;
-        myData.UnChaseTime = 3.0f;
         myStat.DP = 5.0f;
         SkillDelay = 5.0f;
         EnemyMask = LayerMask.GetMask("Player");
-        ChangeState(STATE.ROAM); // ���� ���� ��� �ʱ�ȭ
-        /// �������Ʈ �߰� ///
-        GetComponentInChildren<AnimEvent>().AttackStart += OnAttackStart;
-        GetComponentInChildren<AnimEvent>().AttackEnd += OnAttackEnd;
-        GetComponentInChildren<AnimEvent>().IsRushing += IsRushing;
-        GetComponentInChildren<AnimEvent>().endRush += EndRush;
-        GetComponentInChildren<AnimEvent>().Camerashake += CameraShake;
-        MainCamera = Camera.main;
     }
 
-    // Update is called once per frame
-    void Update()
+    protected override void OnAttack()
     {
-        StateProcess();
-    }
-
-    void OnAttack()
-    {
-        if (myAnim.GetBool("AttackTerm"))
+        Collider[] list = Physics.OverlapSphere(myWeapon.position, 4.0f, EnemyMask);
+        foreach (Collider col in list)
         {
-            Collider[] list = Physics.OverlapSphere(myWeapon.position, 2.5f, EnemyMask);
-            foreach (Collider col in list)
+            BattleSystem bs = col.gameObject.GetComponent<BattleSystem>();
+            if (bs != null)
             {
-                Debug.Log("Attack");
-                BattleSystem bs = col.gameObject.GetComponent<BattleSystem>();
-                if (bs != null)
-                {
-                    bs.OnDamage(myStat.DP);
-                }
+                bs.OnDamage(myStat.DP);
             }
         }
-        else Debug.Log("ss");
     }
-    /// <summary> ���� �ִϸ��̼� ���� ���� üũ �Լ� </summary>
+
     void OnAttackStart()
     {
-        myAnim.SetBool("AttackTerm", true);
         OnAttack();
     }
-    /// <summary> ���� �ִϸ��̼� �� ���� üũ �Լ� </summary>
-    void OnAttackEnd()
-    {
-        myAnim.SetBool("AttackTerm", false);
-    }
 
+    /// <summary> Rush 이벤트 시작 </summary>
     void IsRushing()
     {
-        myAnim.SetBool("IsRush",true);
+        myAnim.SetBool("IsRush", true);
         myAnim.SetBool("IsReady", false);
     }
-
+    /// <summary> Rush 이벤트 끝 </summary>
     void EndRush()
     {
         myAnim.SetBool("IsRush", false);
     }
-
+    /// <summary> 특수 공격 시 카메라 흔들림 이벤트 </summary>
     void CameraShake()
     {
         Shake();
     }
-    /* ��Ʋ �ý��� - �ǰ� -----------------------------------------------------------------------------------------------*/
-    /// <summary> �ǰ� �Լ� </summary>
+    /// <summary> 데미지 인터페이스 </summary>
     public void OnDamage(float Damage)
     {
         if (myState == STATE.DEAD) return;
@@ -195,10 +170,10 @@ public class ZMonster_Tank : ZMoveController, BattleSystem
         if (myStat.HP <= 0) ChangeState(STATE.DEAD);
         else
         {
-            //�ǰݾִϸ��̼� ����
+            
         }
     }
-    /// <summary> ũ��Ƽ�� �ǰ� �Լ� </summary>
+    /// <summary> 크리티컬 데미지 인터페이스 </summary>
     public void OnCritDamage(float CritDamage)
     {
 
@@ -208,9 +183,8 @@ public class ZMonster_Tank : ZMoveController, BattleSystem
     {
         return true;
     }
-    /* ���� �Լ� -----------------------------------------------------------------------------------------------*/
 
-    /// <summary> Ÿ�� �˻� �Լ� </summary>
+    /// <summary> 로밍 상태일때 타겟 검색 </summary>
     protected void FindTarget()
     {
         if (mySensor.myEnemy != null)
@@ -230,16 +204,10 @@ public class ZMonster_Tank : ZMoveController, BattleSystem
         Vector3 pos = this.transform.position;
         pos.x = transform.position.x + Random.Range(-5.0f, 5.0f);
         pos.z = transform.position.z + Random.Range(-5.0f, 5.0f);
-        base.RoamToPosition(pos, myStat.MoveSpeed, myStat.TurnSpeed, () => StartCoroutine(Waitting(Random.Range(1.0f,3.0f), Roaming)));
+        base.RoamToPosition(pos, myStat.MoveSpeed, myStat.TurnSpeed, () => StartCoroutine(base.Waitting(Random.Range(1.0f, 3.0f), Roaming)));
     }
 
-    IEnumerator Waitting(float t, UnityAction done)
-    {
-        yield return new WaitForSeconds(t);
-        done?.Invoke();
-    }
-
-    /// <summary> Ÿ�� �߰� �Լ� </summary>
+    /// <summary> 타겟 추적 </summary>
     private void ChaseTarget()
     {
         if (mySensor.myEnemy != null)
@@ -261,7 +229,8 @@ public class ZMonster_Tank : ZMoveController, BattleSystem
         }
     }
 
-    
+
+    /// <summary> Rush 코루틴 제어 함수 </summary>
     Coroutine rush;
     void RushCoroutine()
     {
@@ -270,6 +239,7 @@ public class ZMonster_Tank : ZMoveController, BattleSystem
         rush = StartCoroutine(IsRush(RushTarget, MoveSpeed));
     }
 
+    /// <summary> 준비 완료 애니메이션 끝난 후 해당 지점으로 Rush </summary>
     IEnumerator IsRush(Vector3 pos, float MoveSpeed)
     {
         if (myAnim.GetBool("IsAttacking") == false && myAnim.GetBool("IsReady") == false)
@@ -277,7 +247,7 @@ public class ZMonster_Tank : ZMoveController, BattleSystem
             Vector3 Dir = pos - this.transform.position;
             float Dist = Dir.magnitude;
             Dir.Normalize();
-            while (Dist > 0.001f)
+            while (Dist > 0.01f)
             {
                 float delta = MoveSpeed * Time.deltaTime;
                 if (Dist < delta)
@@ -286,7 +256,6 @@ public class ZMonster_Tank : ZMoveController, BattleSystem
                 }
                 Dist -= delta;
                 this.transform.Translate(Dir * delta, Space.World);
-                Debug.Log(Dist);
                 yield return null;
             }
             myAnim.SetBool("IsRush", false);
@@ -296,6 +265,7 @@ public class ZMonster_Tank : ZMoveController, BattleSystem
         }
     }
 
+    /// <summary> Rush 이벤트 시작 전 준비 이벤트</summary>
     IEnumerator Ready()
     {
         yield return new WaitForSeconds(2.5f);
@@ -304,6 +274,7 @@ public class ZMonster_Tank : ZMoveController, BattleSystem
         rush = null;
     }
 
+    /// <summary> 카메라 Shake 이벤트 지연 실행 </summary>
     void Shake()
     {
         CameraPos = MainCamera.transform.position;

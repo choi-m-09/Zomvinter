@@ -1,13 +1,14 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public abstract class EquipmentItem : Item
 {
-    /// <summary> ConsumableData·ÎºÎÅÍ °¡Á®¿Â Á¤º¸¸¦ Data¿¡ ÀúÀå </summary>
-    public EquipmentItemData EquipmentData { get; private set; }
+    /// <summary> ConsumableDataï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Dataï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ </summary>
+    public EquipmentItemData EquipmentData { get; set; }
 
-    /// <summary> ÇöÀç ³»±¸µµ </summary>
+    /// <summary> ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ </summary>
     private float _durability;
 
     public float Durability
@@ -23,12 +24,14 @@ public abstract class EquipmentItem : Item
         }
     }
 
-    public EquipmentItem(EquipmentItemData data, int amount = 1) : base(data)
+    public EquipmentItem(EquipmentItemData data) : base(data)
     {
         EquipmentData = data;
         Durability = data.MaxDurability;
     }
 
-    // Item Data ¿ÜÀÇ ÇÊµå°ª¿¡ ´ëÇÑ ¸Å°³º¯¼ö¸¦ °®´Â »ý¼ºÀÚ´Â Ãß°¡·Î Á¦°øÇÏÁö ¾ÊÀ½
-    // ÀÚ½Äµé¿¡¼­ ¸ðµÎ Ãß°¡ÇØÁà¾ß ÇÏ¹Ç·Î À¯Áöº¸¼ö¸é¿¡¼­ ºÒÆí
+    private void Start()
+    {
+        _durability = EquipmentData.MaxDurability;
+    }
 }

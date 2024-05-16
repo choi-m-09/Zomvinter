@@ -35,8 +35,6 @@ using UnityEngine.UI;
     [기능 - 기타]
     - InvertMouse(bool) : 마우스 좌클릭/우클릭 반전 여부 설정
 
-    // 날짜 : 2020-05-03
-
 */
 
 public class InventoryUI : MonoBehaviour
@@ -167,14 +165,6 @@ public class InventoryUI : MonoBehaviour
         _slotUIList[index].SetItemAmount(amount);
     }
 
-    /// <summary> 해당 슬롯의 아이템 개수 텍스트 지정 </summary>
-    public void HideItemAmountText(int index, List<Slot> _slotUIList)
-    {
-        //EditorLog($"Hide Item Amount Text : Slot [{index}]");
-
-        _slotUIList[index].SetItemAmount(1);
-    }
-
     /// <summary> 슬롯에서 아이템 아이콘 제거, 개수 텍스트 숨기기 </summary>
     public void RemoveItem(int index, List<Slot> _slotUIList)
     {
@@ -182,49 +172,6 @@ public class InventoryUI : MonoBehaviour
 
         _slotUIList[index].RemoveItem();
     }
-
-    /// <summary> 접근 가능한 슬롯 범위 설정 </summary>
-    public void SetAccessibleSlotRange(int accessibleSlotCount, Slot[]_slotUIList)
-    {
-        for (int i = 0; i < _slotUIList.Length; i++)
-        {
-            _slotUIList[i].SetSlotAccessState(i < accessibleSlotCount);
-        }
-    }
-
-    /// <summary> 특정 슬롯의 필터 상태 업데이트 </summary>
-    public void UpdateSlotFilterState(List<Slot> _slotUIList, int index, ItemData itemData)
-    {
-        bool isFiltered = true;
-
-        // null인 슬롯은 타입 검사 없이 필터 활성화
-        if (itemData != null)
-            switch (_currentFilterOption)
-            {
-                case FilterOption.Primary:
-                    isFiltered = (itemData is EquipmentItemData);
-                    break;
-                case FilterOption.Secondary:
-                    isFiltered = (itemData is EquipmentItemData);
-                    break;
-                case FilterOption.Helmet:
-                    isFiltered = (itemData is EquipmentItemData);
-                    break;
-                case FilterOption.Bodyarmor:
-                    isFiltered = (itemData is EquipmentItemData);
-                    break;
-                case FilterOption.Backpack:
-                    isFiltered = (itemData is CountableItemData);
-                    break;
-
-                case FilterOption.Expand:
-                    isFiltered = (itemData is CountableItemData);
-                    break;
-            }
-
-        _slotUIList[index].SetItemAccessState(isFiltered);
-    }
-
     /// <summary> 모든 슬롯 필터 상태 업데이트 </summary>
     public void UpdateAllSlotFilters(int Capacity)
     {

@@ -5,13 +5,9 @@ using UnityEngine.UI;
 
 public class PlayerLootArea : MonoBehaviour
 {
-    /// <summary> UI∏¶ ∫“∑Øø¿±‚ ¿ß«— ∫Øºˆ  </summary>
+    /// <summary> Ï∫îÎ≤ÑÏä§ </summary>
     [SerializeField]
     Canvas myCanvas;
-    /// <summary> ≥ª ¿Œ∫•≈‰∏ÆUI Ω∫≈©∏≥∆Æ ∫Øºˆ </summary>
-    [SerializeField]
-    Inventory myInventory;
-    InventoryUI _inventoryUI;
 
     public List<GameObject> LootableItems = new List<GameObject>();
 
@@ -20,51 +16,27 @@ public class PlayerLootArea : MonoBehaviour
     [SerializeField]
     private LayerMask LootableLayerMask;
 
-    /// <summary> PickUp ∆Àæ˜ UI </summary>
+    /// <summary> ÏïÑÏù¥ÌÖú PickUp UI </summary>
     PickUpUI myPickUpUI = null;
     GameObject InstPickupUI = null;
 
-    /// <summary> Loot ∆Àæ˜ UI </summary>
-
-    /// <summary> º≠ƒ™ ∆Àæ˜ UI </summary>
-
-    void Start()
-    {
-        myInventory = myCanvas.GetComponentInChildren<Inventory>();
-        _inventoryUI = myCanvas.GetComponentInChildren<InventoryUI>();
-    }
+    public Item _item;
 
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.F) && LootableItems.Count != 0)
         {
-
-            ItemData item = null;
-            if (LootableItems[0].GetComponent<WeaponItem>() is WeaponItem)
-            {
-                item = LootableItems[0].GetComponent<WeaponItem>().WeaponData;
-            }
-            else if (LootableItems[0].GetComponent<ArmorItem>() is ArmorItem)
-            {
-                item = LootableItems[0].GetComponent<ArmorItem>().ArmorData;
-            }
-            else if (LootableItems[0].GetComponent<PotionItem>() is PotionItem)
-            {
-                item = LootableItems[0].GetComponent<PotionItem>().PotionData;
-            }
-            else if (LootableItems[0].GetComponent<IngredientItem>() is IngredientItem)
-            {
-                item = LootableItems[0].GetComponent<IngredientItem>().IngredientData;
-            }
-            int Index = myInventory.FindEmptySlotIndex(myInventory.Items, myInventory.Items.Count);
-            if (Index != -1)
-            {
-                myInventory.Items[Index] = item;
-                Destroy(LootableItems[0]);
-                LootableItems.RemoveAt(0);
-                Destroy(InstPickupUI);
-            }
+            AddInventory(LootableItems[0].GetComponent<Item>());
+            LootableItems[0].gameObject.SetActive(false);
+            LootableItems.RemoveAt(0);
+            Destroy(InstPickupUI);
         }
+    }
+
+    public void AddInventory(Item item)
+    {
+        if (item is EquipmentItem ei) Inventory._inventory.Add(ei);
+        else if (item is CountableItem ci) Inventory._inventory.Add(ci);
     }
     /*-----------------------------------------------------------------------------------------------*/
     private void OnTriggerEnter(Collider other)
@@ -86,18 +58,4 @@ public class PlayerLootArea : MonoBehaviour
         LootableItems.Remove(other.gameObject);
         Destroy(InstPickupUI);
     }
-
-    //IEnumerator SearchingObject(GameObject UI)
-    //{
-    //    while (UI.gameObject.GetComponent<Slider>().value < 1.0f) 
-    //    {
-    //        UI.gameObject.GetComponent<Slider>().value += Time.deltaTime;
-
-    //        yield return null;
-    //    }
-    //    Destroy(UI);
-    //    SearchingObj = null;
-    //    ObjectUI = Instantiate(Resources.Load("UI/ItemTableUi"), GameObject.Find("Canvas").transform) as GameObject;
-    //    yield return null;
-    //}
 }

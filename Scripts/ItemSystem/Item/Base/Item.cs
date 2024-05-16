@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,9 +6,9 @@ using UnityEngine.UI;
 
 public abstract class Item : MonoBehaviour
 {
-    /// <summary> ╬фюлеш ╣╔юлем╦╕ ╨р╥╞©б╢ы </summary>
-    public ItemData Data { get; private set; }
-    /// <summary> ╨р╥╞©б ╣╔юлем╦╕ Data©║ ╢Кют </summary>
+    /// <summary> О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫м╦О©╫ О©╫р╥О©╫О©╫б╢О©╫ </summary>
+    public ItemData Data { get; set; }
+    /// <summary> О©╫р╥О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫м╦О©╫ DataО©╫О©╫ О©╫О©╫О©╫О©╫ </summary>
     /// <param name="data"></param>
     public Item(ItemData data) => Data = data;
 }

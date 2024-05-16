@@ -5,14 +5,13 @@ using UnityEngine;
 public class IngredientItem : CountableItem
 {
     public IngredientItemData IngredientData;
-    
-    public IngredientItem(IngredientItemData data, int amount = 1) : base(data, amount)
-    {
-        IngredientData = data;
-    }
 
-    protected override CountableItem Clone(int amount)
+    public int c_Amount;
+    public IngredientItem(IngredientItemData data, int amount = 1) : base(data, amount) { }
+
+    private void Awake()
     {
-        return new IngredientItem(CountableData as IngredientItemData, amount);
+        base.CountableData = IngredientData;
+        Amount += c_Amount;
     }
 }

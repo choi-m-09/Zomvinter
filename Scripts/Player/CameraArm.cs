@@ -9,40 +9,39 @@ public class CameraArm : MonoBehaviour
 
     public Transform Target;
     public Transform _playerCamera;
-    public Transform _nightLight;
 
-    #region È¸Àü ¿µ¿ª
-    /// <summary> Camera Arm È¸Àü º¤ÅÍ </summary>
+    #region È¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+    /// <summary> Camera Arm È¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ </summary>
     Quaternion TargetRot;
-    /// <summary> Camera Arm È¸Àü ¼Óµµ </summary>
+    /// <summary> Camera Arm È¸ï¿½ï¿½ ï¿½Óµï¿½ </summary>
     public float RotSpeed;
     Coroutine RotRoutine = null;
     #endregion
 
-    #region ÁÜ ¿µ¿ª
+    #region ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     [SerializeField]
-    /// <summary> ÇöÀç ÁÜ °Å¸® </summary>
+    /// <summary> ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Å¸ï¿½ </summary>
     private float ZoomDist = -5.0f;
     [SerializeField]
-    /// <summary> ÃÖ¼Ò, ÃÖ´ë ÁÜ °Å¸® </summary>
+    /// <summary> ï¿½Ö¼ï¿½, ï¿½Ö´ï¿½ ï¿½ï¿½ ï¿½Å¸ï¿½ </summary>
     private Vector2 ZoomRange;
-    /// <summary> ¸ñÇ¥ ÁÜ °Å¸® </summary>
+    /// <summary> ï¿½ï¿½Ç¥ ï¿½ï¿½ ï¿½Å¸ï¿½ </summary>
     private float TargetZoomDist = 0.0f;
-    /// <summary> ÁÜ ÀÎ/¾Æ¿ô ¼Óµµ </summary>
+    /// <summary> ï¿½ï¿½ ï¿½ï¿½/ï¿½Æ¿ï¿½ ï¿½Óµï¿½ </summary>
     public float ZoomSpeed = 10.0f;
     #endregion
 
-    #region ±¤¿ø ¿µ¿ª
-    /// <summary> ½Ã°£¿¡ µû¸¥ ÇöÀç ÁÜ °Å¸® </summary>
+    #region ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+    /// <summary> ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Å¸ï¿½ </summary>
     private float LightZoomDist = 0.0f;
-    /// <summary> ½Ã°£¿¡ µû¸¥ ¸ñÇ¥ ÁÜ °Å¸® </summary>
+    /// <summary> ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç¥ ï¿½ï¿½ ï¿½Å¸ï¿½ </summary>
     private float TargetLightZoomDist = 0.0f;
     #endregion
 
     /***********************************************************************
     *                               Unity Events
     ***********************************************************************/
-    #region À¯´ÏÆ¼ ÀÌº¥Æ®
+    #region ï¿½ï¿½ï¿½ï¿½Æ¼ ï¿½Ìºï¿½Æ®
     private void OnValidate()
     {
         InitComponent();
@@ -61,12 +60,12 @@ public class CameraArm : MonoBehaviour
         InputMethods();
         ZoomCamera();
 
-        //Ä«¸Þ¶ó ÁÜ¿¡ µû¸¥ Àú³á ½Ã¾ß ÁÜÀÎ¾Æ¿ô
+        //Ä«ï¿½Þ¶ï¿½ ï¿½Ü¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¾ï¿½ ï¿½ï¿½ï¿½Î¾Æ¿ï¿½
         // TargetLightZoomDist += -Input.GetAxis("Mouse ScrollWheel") * ZoomSpeed;
         // TargetLightZoomDist = Mathf.Clamp(TargetLightZoomDist, -6.0f, Mathf.Epsilon);
         // LightZoomDist = Mathf.Lerp(LightZoomDist, TargetLightZoomDist, Time.deltaTime * ZoomSpeed);
 
-        //Àú³á ½Ã¾ß ÁÜÀÎ¾Æ¿ô
+        //ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¾ï¿½ ï¿½ï¿½ï¿½Î¾Æ¿ï¿½
         // _nightLight.localPosition = new Vector3(0.0f, 3.0f, LightZoomDist);
     }
 
@@ -79,7 +78,7 @@ public class CameraArm : MonoBehaviour
     /***********************************************************************
     *                               Input Methods
     ***********************************************************************/
-    #region Input ÇÔ¼ö
+    #region Input ï¿½Ô¼ï¿½
     void InputMethods()
     {
         if (Input.GetKey(KeyCode.Q))
@@ -98,13 +97,13 @@ public class CameraArm : MonoBehaviour
 
     void ZoomCamera()
     {
-        ///<summary> Zoom °Å¸® ÃÖ¼Ò, ÃÖ´ë°ª Clamp </summary>
+        ///<summary> Zoom ï¿½Å¸ï¿½ ï¿½Ö¼ï¿½, ï¿½Ö´ë°ª Clamp </summary>
         TargetZoomDist = Mathf.Clamp(TargetZoomDist, ZoomRange.x, ZoomRange.y);
-        ///<summary> ¸¶¿ì½º ÈÙ ÀÎÇ² </summary>
+        ///<summary> ï¿½ï¿½ï¿½ì½º ï¿½ï¿½ ï¿½ï¿½Ç² </summary>
         TargetZoomDist += Input.GetAxis("Mouse ScrollWheel") * ZoomSpeed;
-        ///<summary> ÁÜ °Å¸® ¼±Çü º¸°£ Update </summary>
+        ///<summary> ï¿½ï¿½ ï¿½Å¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Update </summary>
         ZoomDist = Mathf.Lerp(ZoomDist, TargetZoomDist, Time.deltaTime * ZoomSpeed);
-        ///<summary> Ä«¸Þ¶ó °Å¸® Á¶Àý - Zoom </summary>
+        ///<summary> Ä«ï¿½Þ¶ï¿½ ï¿½Å¸ï¿½ ï¿½ï¿½ï¿½ï¿½ - Zoom </summary>
         _playerCamera.localPosition = new Vector3(0.0f, -ZoomDist, -0.5f);
     }
 #endregion
@@ -112,20 +111,20 @@ public class CameraArm : MonoBehaviour
 /***********************************************************************
 *                               Private Methods
 ***********************************************************************/
-#region Private ÇÔ¼ö
+#region Private ï¿½Ô¼ï¿½
 private void InitValue()
     {
-        /// <summary> ÇöÀç ÁÜ °Å¸® </summary>
+        /// <summary> ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Å¸ï¿½ </summary>
         ZoomDist = -5.0f;
-        /// <summary> ÃÖ¼Ò, ÃÖ´ë ÁÜ °Å¸® </summary>
+        /// <summary> ï¿½Ö¼ï¿½, ï¿½Ö´ï¿½ ï¿½ï¿½ ï¿½Å¸ï¿½ </summary>
         ZoomRange.x = -10.0f;
         ZoomRange.y = -4.0f;
-        /// <summary> ¸ñÇ¥ ÁÜ °Å¸® </summary>
+        /// <summary> ï¿½ï¿½Ç¥ ï¿½ï¿½ ï¿½Å¸ï¿½ </summary>
         TargetZoomDist = 0.0f;
-        /// <summary> ÁÜ ÀÎ/¾Æ¿ô ¼Óµµ </summary>
+        /// <summary> ï¿½ï¿½ ï¿½ï¿½/ï¿½Æ¿ï¿½ ï¿½Óµï¿½ </summary>
         ZoomSpeed = 10.0f;
 
-        /// <summary> Ä«¸Þ¶ó È¸Àü ¼Óµµ </summary>
+        /// <summary> Ä«ï¿½Þ¶ï¿½ È¸ï¿½ï¿½ ï¿½Óµï¿½ </summary>
         RotSpeed = 0.1f;
 }
     private void InitComponent()

@@ -10,44 +10,46 @@ struct MonsterData
     public float AttRange; // ���� ����
     public float AttDelay; // ���� �����
     public float AttSpeed; // ���� �ִϸ��̼� �ӵ�
-    public float UnChaseTime; // ��׷� ���� ����
 }
 
 /// <summary> ĳ���� ������ ����ü</summary>
 [Serializable]
-public struct CharacterStat
+public class CharacterStat
 {
-    public float HP; //ü�� Health Point
+    public float HP; //Health Point
     public float MaxHP;
 
-    public float Stamina;   // ���׹̳�
+    public float Stamina;
     public float MaxStamina;
 
-    public float AP; //���� Armor Point
+    public float AP; //Armor Point
 
-    public float DP; //���ݷ� Damage Point
+    public float DP; //Damage Point
 
-    public float Hunger;    // ���
+    public float SP; // Skill Point
+
+    public float Hunger;
     public float MaxHunger; 
 
-    public float Thirsty;   // ����
+    public float Thirsty; 
     public float MaxThirsty;
 
-    public float CycleSpeed; // ���, ���� ���� �ӵ�
-    public float StaminaCycle; // ���׹̳� ���� �ӵ�
+    public float Minus_Hunger; // 배고픔 수치 줄어드는 속도
+    public float Minus_Thirsty; // 목마름 수치 줄어드는 속도
+    public float RecoverStamina; // 스테미너 자연 회복 속도
 
     //----------- SP ���� �����ϴ� ���� ---------------
-    public int Strength; // �� 
-    public int Constitution; // �ִ�ü�� ���� 
-    public int Dexterity; // ������
-    public int Endurance; // ���¹̳� ���� 
-    public int Intelligence; // ����
+    public int Strength; // 힘
+    public int Constitution; // 최대 체력
+    public int Dexterity; // 허기
+    public int Endurance; // 지구력
+    public int Intelligence; // 지능
 
     public float MoveSpeed;
     public float TurnSpeed;
 }
 
-/// <summary> ȸ�� ���� ���� ����ü </summary>
+/// <summary> </summary>
 public struct ROTATEDATA
 {
     public float Angle;
@@ -74,18 +76,17 @@ public class Character : MonoBehaviour
         }
     }
 
-    /// <summary> ȸ�� ���� �Լ� </summary>
-    /// <param name="src">ȸ�� ���� ����</param>
-    /// <param name="des">ȸ�� �� ����</param>
-    /// <param name="right">�ش� ������Ʈ�� Vector.Right��</param>
-    /// <param name="data">���� �� ���� ��</param>
+    /// <param name="src">시작 지점 벡터</param>
+    /// <param name="des">목표 지점 벡터</param>
+    /// <param name="right"> 오른쪽 벡터 </param>
+    /// <param name="data"> 회전 정보 데이터 </param>
     public static void CalcAngle(Vector3 src, Vector3 des, Vector3 right, out ROTATEDATA data)
     {
         data = new ROTATEDATA();
         float Radian = Mathf.Acos(Vector3.Dot(src, des));
-        //�����̼� ��
+        // Radian 값을 Degree로 변환
         data.Angle = 180.0f * (Radian / Mathf.PI);
-        //ȸ���� ��, ����� ��
+        // 오른쪽 벡터와 목표 지점 내적값에 따라 시계 방향 혹은 시계 반대 방향으로 회전
         data.Dir = 1.0f;
         if (Vector3.Dot(right, des) < 0.0f)
         {

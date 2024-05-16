@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,11 +8,11 @@ public abstract class ItemData : ScriptableObject
 {
 
     public ItemType ItemType => _type;
-    public int ID => _id; // ÀÎµ¦½º
-    public string ItemName => _itemName; // ¾ÆÀÌÅÛ ÀÌ¸§
-    public Sprite ItemImage => _itemImage; // ¾ÆÀÌÅÛ ´ëÇ¥ ÀÌ¹ÌÁö
-    public GameObject ItemPrefab => _itemPrefab; // ¹Ù´Ú¿¡ ¶³¾îÁú ¶§ »ý¼ºÇÒ ÇÁ¸®ÆÕ
-    public string ItemTooltip => _itemTooltip; // ¾ÆÀÌÅÛ ¼³¸í
+    public int ID => _id; // ì•„ì´í…œ ID (ì•„ì´í…œ ìˆ˜ëŸ‰ ê²€ì‚¬ ë˜ëŠ” í™•ì¸ ì‹œ ì‚¬ìš©)
+    public string ItemName => _itemName; // ì•„ì´í…œ ì´ë¦„
+    public Sprite ItemImage => _itemImage; // ì¸ë²¤í† ë¦¬ì— ë‚˜íƒ€ë‚˜ëŠ” ì•„ì´í…œ Sprite
+    public GameObject ItemPrefab => _itemPrefab; // Dropì‹œ ê²Œìž„ í•„ë“œì— ìƒì„±ë  ì•„ì´í…œ 
+    public string ItemTooltip => _itemTooltip; // ë§ˆìš°ìŠ¤ Over ì‹œ ë‚˜íƒ€ë‚  Tooltip
 
     [SerializeField]
     private ItemType _type = ItemType.Any;

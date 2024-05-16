@@ -12,45 +12,34 @@ public class SlotItem : MonoBehaviour, IBeginDragHandler, IEndDragHandler, IDrag
     *                               Option Fields
     ***********************************************************************/
     #region
-    /// <summary> ¾ÆÀÌÅÛ ÀÌ¹ÌÁöÀÇ ºÎ¸ğ ½½·Ô </summary>
+    /// <summary> ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î¸ï¿½ ï¿½ï¿½ï¿½ï¿½ </summary>
     [SerializeField] private Transform CurParent = null;
 
-    private Inventory _inventory;
     #endregion
 
     /***********************************************************************
     *                               Properties
     ***********************************************************************/
-    #region ÇÁ·ÎÆÛÆ¼
-    /// <summary> ¾ÆÀÌÅÛ ÀÌ¹ÌÁö°¡ °¡Áø ÀÎµ¦½º </summary>
+    #region 
+    /// <summary> </summary>
     public int CurIndex = 0;
     #endregion
 
     /***********************************************************************
     *                               Unity Events
     ***********************************************************************/
-    #region À¯´ÏÆ¼ ÀÌº¥Æ®
+    #region ï¿½ï¿½ï¿½ï¿½Æ¼ ï¿½Ìºï¿½Æ®
     private void Start()
     {
         SetIndex();
         SetParent();
-    }
-
-    private void Awake()
-    {
-        
-    }
-
-    private void OnValidate()
-    {
-        _inventory = GetComponentInParent<Inventory>();
     }
     #endregion
 
     /***********************************************************************
     *                               Private Methods
     ***********************************************************************/
-    #region Private ÇÔ¼ö
+    #region Private ï¿½Ô¼ï¿½
     private void SetIndex()
     {
         CurIndex = this.GetComponentInParent<Slot>().SlotIndex;
@@ -67,7 +56,7 @@ public class SlotItem : MonoBehaviour, IBeginDragHandler, IEndDragHandler, IDrag
     *                               Public Methods
     ***********************************************************************/
     #region
-    /// <summary> ºÎ¸ğ º¯°æ </summary>
+    /// <summary> ï¿½Î¸ï¿½ ï¿½ï¿½ï¿½ï¿½ </summary>
     public void ChangeParent(Transform parent)
     {
         SlotItem tempItem = parent.GetComponentInChildren<SlotItem>();
@@ -79,21 +68,20 @@ public class SlotItem : MonoBehaviour, IBeginDragHandler, IEndDragHandler, IDrag
 
         CurParent = parent;
         this.transform.SetParent(CurParent);
-        this.transform.localPosition = Vector2.zero;
-
+        Debug.Log("Swap Item");
         SetIndex();
     }
 
-    /// <summary> À§Ä¡°¡ ¹Ù²ï ¾ÆÀÌÅÛÀ» Inventory.Items ¸®½ºÆ®¿¡¼­ Swap </summary>
-    /// <typeparam name="Item">ÀÎº¥Åä¸® ¸®½ºÆ®¸¦ ºÒ·¯¿Ã Å¸ÀÔ</typeparam>
-    /// <param name="items">¹Ù²ğ ¾ÆÀÌÅÛÀÇ Á¤º¸°¡ ÀÓ½Ã ÀúÀå µÉ ¾ÆÀÌÅÛ º¯¼ö</param>
-    /// <param name="Swap">¹Ù²ñÀ» ´çÇÏ´Â ´ë»óÀÇ Á¤º¸</param>
-    public void SwapItem(List<ItemData> items, Transform Other)
+    /// <summary> ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½Ù²ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Inventory.Items ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ Swap </summary>
+    /// <typeparam name="Item">ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ò·ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½</typeparam>
+    /// <param name="items">ï¿½Ù²ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ó½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½</param>
+    /// <param name="Swap">ï¿½Ù²ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½</param>
+    public void SwapItem(Item[] items, Transform Other)
     {
-        //ÀÓ½Ã ÀúÀå µÉ ¾ÆÀÌÅÛ Å¸ÀÔ º¯¼ö
-        ItemData temp;
+        //ï¿½Ó½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+        Item temp;
         int OtherIndex = Other.GetComponentInChildren<Slot>().SlotIndex;
-        ItemData OtherItem = Other.GetComponentInParent<Slot>().ItemProperties;
+        Item OtherItem = Other.GetComponentInParent<Slot>()._item;
 
         if (OtherItem != null)
         {
@@ -112,197 +100,167 @@ public class SlotItem : MonoBehaviour, IBeginDragHandler, IEndDragHandler, IDrag
     /***********************************************************************
     *                               Mouse Events
     ***********************************************************************/
-    #region ¸¶¿ì½º ÀÌº¥Æ®
+    #region Mouse Event
     public void OnPointerClick(PointerEventData eventData)
     {
         Slot ClickedSlot = eventData.pointerClick.GetComponentInParent<Slot>();
-        // 1. ½½·Ô¿¡ ¿À¸¥ÂÊ Å¬¸¯À» ÇÑ °æ¿ì
+        // 1. ï¿½ï¿½ï¿½Ô¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½
         if (eventData.button == PointerEventData.InputButton.Right)
         {
 
-            // 1-1. ½½·ÔÀÌ Backpack ½½·ÔÀÌ°í ¾ÆÀÌÅÛ Á¤º¸¸¦ °¡Áö°í ÀÖ´Â °æ¿ì
+            // 1-1. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Backpack ï¿½ï¿½ï¿½ï¿½ï¿½Ì°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½
             if (ClickedSlot.ItemProperties != null && ClickedSlot.SlotState == ItemType.Any)
             {
                 Debug.Log("Right Click");
                 ItemData item;
                 item = ClickedSlot.ItemProperties;
 
-                //1-1-1. ¾ÆÀÌÅÛ Á¤º¸°¡ PrimaryÀÎ °æ¿ì
+                //1-1-1. ì£¼ë¬´ê¸° ì¥ì°©
                 if (item.ItemType == ItemType.Primary)
                 {
-                    Debug.Log("ÁÖ¹«±â ¼±ÅÃ");
-                    // ¾ÆÀÌÅÛ ¸®½ºÆ®°¡ °¡µæ Ã¡´ÂÁö Ã¼Å© (FalseÀÎ °æ¿ì)
-                    if (!_inventory.isFull(_inventory.PrimaryItems))
+                    // ë¹„ì–´ìˆëŠ” ì£¼ë¬´ê¸° ì¹¸ ì°¾ì€ í›„ í• ë‹¹
+                    if (!Inventory._inventory.isFull(Inventory._inventory.PrimaryItems))
                     {
-                        // ¾ÆÀÌÅÛ ¸®½ºÆ®¿¡ ºó ÀÎµ¦½º Ã£±â
-                        int Index = _inventory.FindEmptySlotIndex(_inventory.PrimaryItems, _inventory.PrimaryItems.Count);
-                        _inventory.PrimaryItems[Index] = item;
+                        int Index = Inventory._inventory.FindEmptySlotIndex(Inventory._inventory.PrimaryItems);
+                        Inventory._inventory.PrimaryItems[Index] = ClickedSlot._item;
 
-                        ClickedSlot.ItemProperties = null;
-                        _inventory.Items[ClickedSlot.SlotIndex] = null;
+                        ClickedSlot._item = null;
+                        Inventory._inventory.Items[ClickedSlot.SlotIndex] = null;
 
 
                     }
-                    // °¡µæ Âù °æ¿ì
+                    // ì£¼ë¬´ê¸° ì¹¸ì´ ì´ë¯¸ í• ë‹¹ ë˜ì—ˆì„ ë•Œ ìŠ¤ì™‘
                     else
                     {
-                        ItemData temp;
-                        temp = _inventory.PrimaryItems[0];
-                        _inventory.PrimaryItems[0] = item;
+                        Item temp;
+                        temp = Inventory._inventory.PrimaryItems[0];
+                        Inventory._inventory.PrimaryItems[0] = ClickedSlot._item;
 
 
-                        _inventory.Items[ClickedSlot.SlotIndex] = temp;
+                        Inventory._inventory.Items[ClickedSlot.SlotIndex] = temp;
                     }
 
                 }
-                //1-1-2. ¾ÆÀÌÅÛ Á¤º¸°¡ SecondaryÀÎ °æ¿ì
+                //1-1-2. ë³´ì¡°ë¬´ê¸° ì¥ì°©
                 else if (item.ItemType == ItemType.Secondary)
                 {
-                    Debug.Log("º¸Á¶¹«±â ¼±ÅÃ");
-                    // º¸Á¶¹«±â ¸®½ºÆ®°¡ °¡µæ Ã¡´ÂÁö Ã¼Å© (FalseÀÎ °æ¿ì)
-                    if (!_inventory.isFull(_inventory.SecondaryItems))
+                    // ë³´ì¡°ë¬´ê¸° ë¯¸ì°©ìš©ì¼ ê²½ìš° í• ë‹¹
+                    if (Inventory._inventory.SecondaryItem == null)
                     {
-                        _inventory.SecondaryItems = item;
+                        Inventory._inventory.SecondaryItem = ClickedSlot._item;
 
-                        ClickedSlot.ItemProperties = null;
-                        _inventory.Items[ClickedSlot.SlotIndex] = null;
+                        ClickedSlot._item = null;
+                        Inventory._inventory.Items[ClickedSlot.SlotIndex] = null;
                     }
-                    // °¡µæ Âù °æ¿ì
+                    // ì´ë¯¸ ì°©ìš© ë˜ì–´ìˆì„ ê²½ìš° ìŠ¤ì™‘
                     else
                     {
-                        ItemData temp;
-                        temp = _inventory.SecondaryItems;
-                        _inventory.SecondaryItems = item;
+                        Item temp;
+                        temp = Inventory._inventory.SecondaryItem;
+                        Inventory._inventory.SecondaryItem = ClickedSlot._item;
 
-                        _inventory.Items[ClickedSlot.SlotIndex] = temp;
+                        Inventory._inventory.Items[ClickedSlot.SlotIndex] = temp;
                     }
                 }
-                //1-1-3. ¾ÆÀÌÅÛ Á¤º¸°¡ ExpandÀÎ °æ¿ì
-                else if (item.ItemType == ItemType.Expand)
+                //1-1-3. ì†Œë¹„ ì•„ì´í…œì¸ ê²½ìš° ì‚¬ìš©
+                else if (item.ItemType == ItemType.Consumable)
                 {
-                    Debug.Log("¼Ò¸ğÇ° ¼±ÅÃ");
-                    // ¼Ò¸ğÇ° ¸®½ºÆ®°¡ °¡µæ Ã¡´ÂÁö Ã¼Å© (FalseÀÎ °æ¿ì)
-                    if (!_inventory.isFull(_inventory.ConsumableItems))
-                    {
-                        // ¾ÆÀÌÅÛ ¸®½ºÆ®¿¡ ºó ÀÎµ¦½º Ã£±â
-                        int Index = _inventory.FindEmptySlotIndex(_inventory.ConsumableItems, _inventory.ConsumableItems.Count);
-
-                        _inventory.ConsumableItems[Index] = item;
-
-                        ClickedSlot.ItemProperties = null;
-                        _inventory.Items[ClickedSlot.SlotIndex] = null;
-                    }
-                    // °¡µæ Âù °æ¿ì
-                    else
-                    {
-                        ItemData temp;
-                        temp = _inventory.ConsumableItems[0];
-                        _inventory.ConsumableItems[0] = item;
-
-
-                        _inventory.Items[ClickedSlot.SlotIndex] = temp;
-                    }
+                    Inventory._inventory.Use(GameObject.Find("Player").GetComponent<Player>(),ClickedSlot.SlotIndex);
                 }
-                //1-1-4. ¾ÆÀÌÅÛ Á¤º¸°¡ HelmetÀÎ °æ¿ì
+                //1-1-4. Helmet ì°©ìš©(êµ¬í˜„ ì˜ˆì •)
                 else if (item.ItemType == ItemType.Helmet)
                 {
 
                 }
-                //1-1-5. ¾ÆÀÌÅÛ Á¤º¸°¡ BodyarmorÀÎ °æ¿ì
+                //1-1-5. Bodyarmor ì°©ìš©(êµ¬í˜„ ì˜ˆì •)
                 else if (item.ItemType == ItemType.Bodyarmor)
                 {
 
                 }
-                //1-1-1. ¾ÆÀÌÅÛ Á¤º¸°¡ BackpackÀÎ °æ¿ì
+                //1-1-1. Backpack ì°©ìš©(êµ¬í˜„ ì˜ˆì •)
                 else if (item.ItemType == ItemType.Backpack)
                 {
 
                 }
             }
-            // 1-2-1. ½½·ÔÀÌ ÁÖ ¹«±â ½½·ÔÀÌ°í ¾ÆÀÌÅÛ Á¤º¸¸¦ °¡Áö°í ÀÖ´Â °æ¿ì
+            // 1-2-1. ì£¼ë¬´ê¸° íƒˆì°©
             else if (ClickedSlot.ItemProperties != null && ClickedSlot.SlotState == ItemType.Primary)
-            {
-                // ¾ÆÀÌÅÛ ¸®½ºÆ®°¡ °¡µæ Ã¡´ÂÁö Ã¼Å© (FalseÀÎ °æ¿ì)
-                if (!_inventory.isFull(_inventory.Items))
+            {   
+                // ë°±íŒ© ê³µê°„ í™•ì¸
+                if (!Inventory._inventory.isFull(Inventory._inventory.Items))
                 {
-                    int Index = _inventory.FindEmptySlotIndex(_inventory.Items, _inventory.Items.Count);
-                    _inventory.Items[Index] = ClickedSlot.ItemProperties;
-                    _inventory.PrimaryItems[ClickedSlot.SlotIndex] = null;
+                    int Index = Inventory._inventory.FindEmptySlotIndex(Inventory._inventory.Items);
+                    Inventory._inventory.Items[Index] = ClickedSlot._item;
+                    Inventory._inventory.PrimaryItems[ClickedSlot.SlotIndex] = null;
                 }
             }
-            // 1-3-1. ½½·ÔÀÌ º¸Á¶ ¹«±â ½½·ÔÀÌ°í ¾ÆÀÌÅÛ Á¤º¸¸¦ °¡Áö°í ÀÖ´Â °æ¿ì
+            // 1-3-1. ê¶Œì´ íƒˆì°©
             else if (ClickedSlot.ItemProperties != null && ClickedSlot.SlotState == ItemType.Secondary)
-            {
-                // ¾ÆÀÌÅÛ ¸®½ºÆ®°¡ °¡µæ Ã¡´ÂÁö Ã¼Å© (FalseÀÎ °æ¿ì)
-                if (!_inventory.isFull(_inventory.Items))
+            {   
+                if (!Inventory._inventory.isFull(Inventory._inventory.Items))
                 {
-                    int Index = _inventory.FindEmptySlotIndex(_inventory.Items, _inventory.Items.Count);
-                    _inventory.Items[Index] = ClickedSlot.ItemProperties;
-                    Debug.Log("º¸Á¶¹«±â Á¦°Å");
-                    _inventory.SecondaryItems = null;
+                    int Index = Inventory._inventory.FindEmptySlotIndex(Inventory._inventory.Items);
+                    Inventory._inventory.Items[Index] = ClickedSlot._item;
+                    Inventory._inventory.SecondaryItem = null;
                 }
             }
-            // 1-4-1. ½½·ÔÀÌ ¼Ò¸ğÇ° ½½·ÔÀÌ°í ¾ÆÀÌÅÛ Á¤º¸¸¦ °¡Áö°í ÀÖ´Â °æ¿ì
-            else if (ClickedSlot.ItemProperties != null && ClickedSlot.SlotState == ItemType.Expand)
-            {
-                // ¾ÆÀÌÅÛ ¸®½ºÆ®°¡ °¡µæ Ã¡´ÂÁö Ã¼Å© (FalseÀÎ °æ¿ì)
-                if (!_inventory.isFull(_inventory.Items))
+            // 1-4-1. í€µìŠ¬ë¡¯ íƒˆì°©
+            else if (ClickedSlot.ItemProperties != null && ClickedSlot.SlotState == ItemType.Consumable)
+            {   
+                if (!Inventory._inventory.isFull(Inventory._inventory.Items))
                 {
-                    int Index = _inventory.FindEmptySlotIndex(_inventory.Items, _inventory.Items.Count);
-                    _inventory.Items[Index] = ClickedSlot.ItemProperties;
-                    _inventory.ConsumableItems[ClickedSlot.SlotIndex] = null;
+                    int Index = Inventory._inventory.FindEmptySlotIndex(Inventory._inventory.Items);
+                    Inventory._inventory.Items[Index] = ClickedSlot._item;
+                    Inventory._inventory.ConsumableItems[ClickedSlot.SlotIndex] = null;
                 }
             }
-            // 1-5-1. ½½·ÔÀÌ Çï¸ä ½½·ÔÀÌ°í ¾ÆÀÌÅÛ Á¤º¸¸¦ °¡Áö°í ÀÖ´Â °æ¿ì
+            // 1-5-1. í•¼ë©§ íƒˆì°©
             else if (ClickedSlot.ItemProperties != null && ClickedSlot.SlotState == ItemType.Helmet)
             {
-                // ¾ÆÀÌÅÛ ¸®½ºÆ®°¡ °¡µæ Ã¡´ÂÁö Ã¼Å© (FalseÀÎ °æ¿ì)
-                if (!_inventory.isFull(_inventory.Items))
+                if (!Inventory._inventory.isFull(Inventory._inventory.Items))
                 {
-                    int Index = _inventory.FindEmptySlotIndex(_inventory.Items, _inventory.Items.Count);
-                    _inventory.Items[Index] = ClickedSlot.ItemProperties;
-                    _inventory.HelmetItem = null;
+                    int Index = Inventory._inventory.FindEmptySlotIndex(Inventory._inventory.Items);
+                    Inventory._inventory.Items[Index] = ClickedSlot._item;
+                    Inventory._inventory.HelmetItem = null;
                 }
             }
-            // 1-6-1. ½½·ÔÀÌ ¹æ¾î±¸ ½½·ÔÀÌ°í ¾ÆÀÌÅÛ Á¤º¸¸¦ °¡Áö°í ÀÖ´Â °æ¿ì
+            // 1-6-1. ë°©ì–´êµ¬ íƒˆì°©
             else if (ClickedSlot.ItemProperties != null && ClickedSlot.SlotState == ItemType.Bodyarmor)
             {
-                // ¾ÆÀÌÅÛ ¸®½ºÆ®°¡ °¡µæ Ã¡´ÂÁö Ã¼Å© (FalseÀÎ °æ¿ì)
-                if (!_inventory.isFull(_inventory.Items))
+                
+                if (!Inventory._inventory.isFull(Inventory._inventory.Items))
                 {
-                    int Index = _inventory.FindEmptySlotIndex(_inventory.Items, _inventory.Items.Count);
-                    _inventory.Items[Index] = ClickedSlot.ItemProperties;
-                    _inventory.BodyArmorItem = null;
+                    int Index = Inventory._inventory.FindEmptySlotIndex(Inventory._inventory.Items);
+                    Inventory._inventory.Items[Index] = ClickedSlot._item;
+                    Inventory._inventory.BodyArmorItem = null;
                 }
             }
-            // 1-7-1. ½½·ÔÀÌ °¡¹æ ½½·ÔÀÌ°í ¾ÆÀÌÅÛ Á¤º¸¸¦ °¡Áö°í ÀÖ´Â °æ¿ì
+            
             else if (ClickedSlot.ItemProperties != null && ClickedSlot.SlotState == ItemType.Backpack)
             {
-                // ¾ÆÀÌÅÛ ¸®½ºÆ®°¡ °¡µæ Ã¡´ÂÁö Ã¼Å© (FalseÀÎ °æ¿ì)
-                if (!_inventory.isFull(_inventory.Items))
+                
+                if (!Inventory._inventory.isFull(Inventory._inventory.Items))
                 {
-                    int Index = _inventory.FindEmptySlotIndex(_inventory.Items, _inventory.Items.Count);
-                    _inventory.Items[Index] = ClickedSlot.ItemProperties;
-                    _inventory.BackpackItem = null;
+                    int Index = Inventory._inventory.FindEmptySlotIndex(Inventory._inventory.Items);
+                    Inventory._inventory.Items[Index] = ClickedSlot._item;
+                    Inventory._inventory.BackpackItem = null;
                 }
             }
         }
-        // 2. ½½·Ô¿¡ ¿ŞÂÊ Å¬¸¯À» ÇÑ °æ¿ì
+        // 2. ï¿½ï¿½ï¿½Ô¿ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½
         else if (eventData.button == PointerEventData.InputButton.Left)
         {
-            // 2-1. ½½·ÔÀÌ ¼Ò¸ğÇ° ½½·ÔÀÌ°í ¾ÆÀÌÅÛ Á¤º¸¸¦ °¡Áö°í ÀÖ´Â °æ¿ì
-            if (ClickedSlot.ItemProperties != null && ClickedSlot.SlotState == ItemType.Expand)
+            // 2-1. í™•ì¥ì°½ìœ¼ë¡œ ì´ë™í•  ìˆ˜ ìˆëŠ” ë²„íŠ¼ UI ë„ìš°ê¸°(ê°œë°œ ì˜ˆì •)
+            if (ClickedSlot.ItemProperties != null && ClickedSlot.SlotState == ItemType.Consumable)
             {
-                //¾ÆÀÌÅÛ »ç¿ë
-                PotionItemData po = (PotionItemData)ClickedSlot.ItemProperties;
+                
+                
             }
         }
     }
-    /// <summary> µå·¡±× ½ÃÀÛ ½Ã </summary>
+    /// <summary> ï¿½å·¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ </summary>
     public void OnBeginDrag(PointerEventData eventData)
     {
-        //CurParent = this.transform.parent;
-        //this.transform.SetParent(CurParent.parent);
         Slot MoveSlot = eventData.pointerClick.GetComponentInParent<Slot>();
         if (MoveSlot.SlotState == ItemType.Any)
         {
@@ -310,7 +268,7 @@ public class SlotItem : MonoBehaviour, IBeginDragHandler, IEndDragHandler, IDrag
         }
     }
 
-    /// <summary> µå·¡±× Áß </summary>
+    /// <summary> ï¿½å·¡ï¿½ï¿½ ï¿½ï¿½ </summary>
     public void OnDrag(PointerEventData eventData)
     {
         Slot MoveSlot = eventData.pointerClick.GetComponentInParent<Slot>();
@@ -321,47 +279,30 @@ public class SlotItem : MonoBehaviour, IBeginDragHandler, IEndDragHandler, IDrag
         }
     }
 
-    /// <summary> µå·¡±× ³¡³¯ ½Ã </summary>
+    /// <summary> ï¿½å·¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ </summary>
     public void OnEndDrag(PointerEventData eventData)
     {
-        //Slot MoveSlot = eventData.pointerClick.GetComponentInParent<Slot>();
-        //if (MoveSlot.SlotState == ItemType.Any)
-        //{
             if (IsOverUI)
             {
-                //this.transform.SetParent(CurParent);
                 this.transform.localPosition = Vector2.zero;
                 this.gameObject.GetComponent<Image>().raycastTarget = true;
             }
             else
             {
-                Vector3 DropPos = this.GetComponentInParent<Inventory>().myPlayerPos.position;
+            Vector3 DropPos = GameObject.Find("Player").transform.position;
                 DropPos.y += 2.0f;
+                DropPos.x += 1.0f;
 
-                //this.transform.SetParent(CurParent);
                 this.transform.localPosition = Vector2.zero;
                 this.gameObject.GetComponent<Image>().raycastTarget = true;
-
-                if (this.gameObject.GetComponentInParent<Slot>().ItemProperties.ItemPrefab != null)
-                {
-                    ItemData item = this.gameObject.GetComponentInParent<Slot>().ItemProperties;
-                    GameObject obj = Instantiate(this.gameObject.GetComponentInParent<Slot>().ItemProperties.ItemPrefab,
-                        DropPos, Quaternion.identity);
-                    //if(item.ItemType == ItemType.Expand)
-                    //{
-                    //    obj.AddComponent<PotionItem>();
-                    //    obj.GetComponent<PotionItem>().PotionData = (PotionItemData)item;
-                    //}
-                    //else if (item.ItemType == ItemType.Primary || item.ItemType == ItemType.Secondary)
-                    //{
-                    //    obj.AddComponent<WeaponItem>();
-                    //    obj.GetComponent<WeaponItem>().WeaponData = (WeaponItemData)item;
-                    //}
-                }
-
+    
                 int CurIndex = this.GetComponentInParent<Slot>().SlotIndex;
 
-                this.gameObject.GetComponentInParent<Inventory>().Items.RemoveAt(CurIndex);
+                Inventory._inventory.Items[CurIndex].gameObject.transform.position = DropPos;
+
+                Inventory._inventory.Items[CurIndex].gameObject.SetActive(true);
+
+                Inventory._inventory.Items[CurIndex] = null;
 
                 this.GetComponentInParent<Slot>().RemoveItem();
 

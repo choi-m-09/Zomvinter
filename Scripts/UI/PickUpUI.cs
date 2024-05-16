@@ -4,15 +4,15 @@ using UnityEngine;
 
 public class PickUpUI : MonoBehaviour
 {
-    /// <summary> UI°¡ RootÀÇ Height ³ôÀÌ¸¸Å­ °íÁ¤ µÇµµ·Ï ÄÚ·çÆ¾¿¡ ÀÎÀÚ¸¦ Àü´Þ </summary>
-    /// <param name="Root"> °íÁ¤ ÇÒ ¿ÀºêÁ§Æ®ÀÇ Transform°ª </param>
-    /// <param name="Height"> °íÁ¤ ÇÒ ¿ÀºêÁ§Æ®¿¡¼­ UI°¡ Ãâ·Â µÉ ³ôÀÌ </param>
+    /// <summary> UIï¿½ï¿½ Rootï¿½ï¿½ Height ï¿½ï¿½ï¿½Ì¸ï¿½Å­ ï¿½ï¿½ï¿½ï¿½ ï¿½Çµï¿½ï¿½ï¿½ ï¿½Ú·ï¿½Æ¾ï¿½ï¿½ ï¿½ï¿½ï¿½Ú¸ï¿½ ï¿½ï¿½ï¿½ï¿½ </summary>
+    /// <param name="Root"> ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ Transformï¿½ï¿½ </param>
+    /// <param name="Height"> ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ UIï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ </param>
     public void Initialize(Transform Root, float Height)
     {
         StartCoroutine(Following(Root, Height));
     }
 
-    /// <summary> Root°¡ Àü´Þ µÇ¸é UIÀÇ À§Ä¡¸¦ RootÀÇ HeightÀ§Ä¡¿¡ µû¶ó´Ù´Ïµµ·Ï ¹Ýº¹ ½ÇÇà </summary>
+    /// <summary> Rootï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¸ï¿½ UIï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ Rootï¿½ï¿½ Heightï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ù´Ïµï¿½ï¿½ï¿½ ï¿½Ýºï¿½ ï¿½ï¿½ï¿½ï¿½ </summary>
     IEnumerator Following(Transform Root, float Height)
     {
         while (Root != null)

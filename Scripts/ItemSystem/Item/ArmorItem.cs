@@ -2,11 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary> Àåºñ - ¹æ¾î±¸ ¾ÆÀÌÅÛ </summary>
+/// <summary> ï¿½ï¿½ï¿½ - ï¿½ï¿½î±¸ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ </summary>
 public class ArmorItem : EquipmentItem
 {
-    /// <summary> ConsumableData·ÎºÎÅÍ °¡Á®¿Â Á¤º¸¸¦ Data¿¡ ÀúÀå </summary>
-    public ArmorItemData ArmorData { get; private set; }
+    /// <summary> ConsumableDataï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Dataï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ </summary>
+    public ArmorItemData ArmorData { get; set; }
 
     public ArmorItem(ArmorItemData data) : base(data)
     {

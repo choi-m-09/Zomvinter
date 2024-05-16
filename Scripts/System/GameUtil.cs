@@ -3,23 +3,22 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-public enum ItemType // ¾ÆÀÌÅÛ Å¸ÀÔ
+public enum ItemType
 {
-    Primary, Secondary, Expand, Helmet, Bodyarmor, Backpack, Any
+    Primary, Secondary, Consumable, Helmet, Bodyarmor, Backpack, Any
 }
 
-/// <summary> ¿ùµå Å¸ÀÓ º¯¼ö ±¸Á¶Ã¼ </summary>
+/// <summary> ê²Œì„ ë‚´ ì‹œê°„ ê´€ë ¨ ë°ì´í„°(ê°œë°œ ì¤‘) </summary>
 public struct time
 {
     public static int day;
     public static float Gametime;
 }
-public class GameUtil : MonoBehaviour
+public class GameUtil
 {
 
 }
-
-/// <summary> ÀüÅõ ½Ã½ºÅÛ ÀÎÅÍÆäÀÌ½º </summary>
+/// <summary> ì „íˆ¬ ì‹œìŠ¤í…œ ì¸í„°í˜ì´ìŠ¤ </summary>
 public interface BattleSystem
 {
     void OnDamage(float Damage);
@@ -27,4 +26,9 @@ public interface BattleSystem
     bool IsLive();
     Transform transform { get; }
 
+}
+
+public interface IUsableItem
+{
+    bool Use(Player _player);
 }

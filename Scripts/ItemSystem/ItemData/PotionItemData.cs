@@ -2,11 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary> ¼Òºñ ¾ÆÀÌÅÛ Á¤º¸ </summary>
+/// <summary> ï¿½Òºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ </summary>
 [CreateAssetMenu(fileName = "Item_Countable_", menuName = "Inventory System/Item Data/Countable/Potion", order = 1)]
 public class PotionItemData : CountableItemData
 {
-    /// <summary> È¿°ú·®(È¸º¹·® µî) </summary>
+    /// <summary> È¿ï¿½ï¿½ï¿½ï¿½(È¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½) </summary>
     public float Value => _value;
     [SerializeField] private float _value;
 }

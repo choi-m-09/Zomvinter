@@ -1,28 +1,47 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
-/// <summary> ¼ö·® ¾ÆÀÌÅÛ - Æ÷¼Ç ¾ÆÀÌÅÛ </summary>
-public class PotionItem : CountableItem
+/// <summary> ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ </summary>
+public class PotionItem : CountableItem, IUsableItem
 {
     public PotionItemData PotionData;
-    public PotionItem(PotionItemData data, int amount = 1) : base(data, amount) 
+    public PotionItem(PotionItemData data, int amount = 1) : base(data, amount) {}
+
+    public bool Use(Player _player)
     {
-        PotionData = data;
+        switch (PotionData.ID)
+        {
+            case 10007:
+                if (_player.Stat.HP < _player.Stat.MaxHP)
+                {
+                    Amount--;
+                    _player.Stat.HP += PotionData.Value;
+                    return true;
+                }
+                break;
+            case 10008:
+                if (_player.Stat.Hunger < _player.Stat.MaxHunger)
+                {
+                    Amount--;
+                    _player.Stat.Hunger += PotionData.Value;
+                    return true;
+                }
+                break;
+            case 10009:
+                if(_player.Stat.Thirsty < _player.Stat.MaxThirsty)
+                {
+                    Amount--;
+                    _player.Stat.Thirsty += PotionData.Value;
+                }
+                break;
+        }
+        return false;
     }
 
-    public bool Use()
+    private void Awake()
     {
-        // ÀÓ½Ã : °³¼ö ÇÏ³ª °¨¼Ò
-        Amount--;
-
-        return true;
-    }
-
-    /* --------------------------------------------------------------------------------- */
-
-    protected override CountableItem Clone(int amount)
-    {
-        return new PotionItem(CountableData as PotionItemData, amount);
+        base.CountableData = PotionData;
     }
 }

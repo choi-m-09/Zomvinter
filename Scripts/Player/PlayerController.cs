@@ -19,22 +19,18 @@ public class PlayerController : MonoBehaviour
     }
     
     /*-----------------------------------------------------------------------------------------------*/
-    protected void Moving(Transform Base, Vector3 pos, float moveSpeed, Transform CamTr)
+    protected void Moving(Transform Base, ref Vector3 pos, float moveSpeed, Transform CamTr)
     {        
-        float delta = moveSpeed * Time.deltaTime;       
-
+        float delta = moveSpeed * Time.deltaTime;
+        
         if (pos.magnitude > 1.0f)
         {
             pos.Normalize();
         }
-
+       
         bool IsRun = myAnim.GetBool("isRun");
 
         Base.Translate(pos * delta, CamTr);
-
-        Quaternion rot = Quaternion.Euler(new Vector3(0, -this.transform.rotation.eulerAngles.y, 0));
-
-        pos = rot * pos;
 
         myAnim.SetFloat("pos.x", pos.x);
         myAnim.SetFloat("pos.z", pos.z);
@@ -54,47 +50,54 @@ public class PlayerController : MonoBehaviour
 
         Obj.Translate(pos * delta, Space.Self);
     }
-
-    protected void Rotate(Transform RotatePoint)
+    
+    protected void Rotate(Transform RotatePoint, bool Aiming)
     {
-
-        Ray cameraRay = Camera.main.ScreenPointToRay(Input.mousePosition);
-        //¸¶¿ì½º À§Ä¡¸¦ Ä«¸Þ¶ó·¹ÀÌ¸¦ ÀÌ¿ëÇØ Ä«¸Þ¶ó¿¡¼­ ½ºÅ©¸°ÀÇ Á¡À» ÅëÇØ ¹ÝÈ¯
-        Plane GroupPlane = new Plane(Vector3.up, Vector3.zero); // ·¹ÀÌ¾î ¸¶½ºÅ©¿Í µ¿ÀÏÇÑ °³³ä
-        //¿ùµåÁÂÇ¥·Î ÇÏ´Ã ¹æÇâ¿¡ Å©±â°¡ 1ÀÎ ¹éÅÍ¿Í ¿øÁ¡À» °®À½
-        float rayLength;
-        if (GroupPlane.Raycast(cameraRay, out rayLength)) //·¹ÀÌ°¡ Æò¸é°ú ±³Â÷Çß´ÂÁö ÆÄ¾Ç
+        if (!Aiming)
         {
-            Vector3 pointTolook = cameraRay.GetPoint(rayLength); //·¹ÀÌ·À½º°Å¸®¿¡ À§Ä¡°ª ¹ÝÈ¯
-            /*transform.LookAt(new Vector3(pointTolook.x, transform.position.y, pointTolook.z));
-            //À§¿¡¼­ ±¸ÇÑ pointTolook À§Ä¡°ªÀ» Ä³¸¯ÅÍ°¡ º¸°ÔÇÔ*/
-            Vector3 dir = pointTolook - this.transform.position; //“‡Çâ ±¸ÇÏ±â, ¹æÇâ º¤ÅÍ°ª = ¸ñÇ¥º¤ÅÍ - ½ÃÀÛº¤ÅÍ
-            dir.y = 0.0f;
-            Quaternion rot = Quaternion.LookRotation(dir.normalized); //¹æÇâÀÇ ÄõÅÍ´Ï¾ð °ª ±¸ÇÏ±â, Äõ³ÊÆ¼¾ð °ª = Äõ³ÊÆ¼¾ð ¹æÇâ °ª(¹æÇâ º¤ÅÍ)
-            
-            RotatePoint.transform.rotation = rot; //¹æÇâ µ¹¸®±â
-            //Debug.DrawRay(cameraRay.origin, cameraRay.direction * 10.0f, Color.red, 0.1f);
-            // ?¹æÇâ ÃÊ±âÈ­ ½ÃÅ³ ¹æ¹ý  ?°ßÂøÁßÀÏ ¶§ ¾î¶»°Ô °¢µµ Á¦ÇÑ ÇÒ°ÍÀÎÁö ?¹æÇâÀüÈ¯¶§ ºÎµå·´°Ô ÇÏ´Â ¹æ¹ýv
-            // Áý!°È´Â ¾Ö´Ï¸ÞÀÌ¼Ç Ãß°¡, °È´Â ¾Ö´Ï¸ÞÀÌ¼Ç »ç¿ëÇÒ ¶§ ÀÌµ¿¼Óµµ Á¦ÇÑÇÏ±â? ´Þ¸±¶§ ÀÌµ¿¼Óµµ Áõ°¡ÇÏ±â? 
-            // Áý!Æò¼Ò¿¡ °È´Â ¾Ö´Ï¸ÞÀÌ¼ÇÀ¸·Î ÇÒ´ç, ½¬ÇÁÆ® Å° ´©¸£¸é ´Þ¸®±â ±¸Çö, °ßÂøÁß¿¡ ´Þ¸®±â ºñÈ°¼ºÈ­ ½ÃÅ°±â 
+            CameraArm C_Rot = GameObject.Find("CameraArm").GetComponent<CameraArm>();
+            RotatePoint.transform.rotation = C_Rot.transform.rotation;
+        }
+        else
+        {
+            Ray cameraRay = Camera.main.ScreenPointToRay(Input.mousePosition);
+            //ï¿½ï¿½ï¿½ì½º ï¿½ï¿½Ä¡ï¿½ï¿½ Ä«ï¿½Þ¶ï¿½ï¿½Ì¸ï¿½ ï¿½Ì¿ï¿½ï¿½ï¿½ Ä«ï¿½Þ¶ó¿¡¼ï¿½ ï¿½ï¿½Å©ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
+            Plane GroupPlane = new Plane(Vector3.up, Vector3.zero); // ï¿½ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½ï¿½ï¿½Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+                                                                    //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç¥ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½â¿¡ Å©ï¿½â°¡ 1ï¿½ï¿½ ï¿½ï¿½ï¿½Í¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+            float rayLength;
+            if (GroupPlane.Raycast(cameraRay, out rayLength)) //ï¿½ï¿½ï¿½Ì°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ß´ï¿½ï¿½ï¿½ ï¿½Ä¾ï¿½
+            {
+                Vector3 pointTolook = cameraRay.GetPoint(rayLength); //ï¿½ï¿½ï¿½Ì·ï¿½ï¿½ï¿½ï¿½Å¸ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½È¯
+                                                                     //transform.LookAt(new Vector3(pointTolook.x, transform.position.y, pointTolook.z));
+                                                                     //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ pointTolook ï¿½ï¿½Ä¡ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+                Vector3 dir = pointTolook - this.transform.position; //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï±ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í°ï¿½ = ï¿½ï¿½Ç¥ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½Ûºï¿½ï¿½ï¿½
+                dir.y = 0.0f;
+                Quaternion rot = Quaternion.LookRotation(dir.normalized); //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í´Ï¾ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Ï±ï¿½, ï¿½ï¿½ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ = ï¿½ï¿½ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
+
+                RotatePoint.transform.rotation = rot; //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+                                                      //Debug.DrawRay(cameraRay.origin, cameraRay.direction * 10.0f, Color.red, 0.1f);
+                                                      // ?ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½  ?ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½î¶»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ò°ï¿½ï¿½ï¿½ï¿½ï¿½ ?ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¯ï¿½ï¿½ ï¿½Îµå·´ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½v
+                                                      // ï¿½ï¿½!ï¿½È´ï¿½ ï¿½Ö´Ï¸ï¿½ï¿½Ì¼ï¿½ ï¿½ß°ï¿½, ï¿½È´ï¿½ ï¿½Ö´Ï¸ï¿½ï¿½Ì¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ìµï¿½ï¿½Óµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½? ï¿½Þ¸ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ï¿½Óµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½? 
+                                                      // ï¿½ï¿½!ï¿½ï¿½Ò¿ï¿½ ï¿½È´ï¿½ ï¿½Ö´Ï¸ï¿½ï¿½Ì¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ò´ï¿½, ï¿½ï¿½ï¿½ï¿½Æ® Å° ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ß¿ï¿½ ï¿½Þ¸ï¿½ï¿½ï¿½ ï¿½ï¿½È°ï¿½ï¿½È­ ï¿½ï¿½Å°ï¿½ï¿½
+            }
         }
     }
 
     protected void BulletRotate(Transform RotatePoint)
     {
         Ray cameraRay = Camera.main.ScreenPointToRay(Input.mousePosition);
-        //¸¶¿ì½º À§Ä¡¸¦ Ä«¸Þ¶ó·¹ÀÌ¸¦ ÀÌ¿ëÇØ Ä«¸Þ¶ó¿¡¼­ ½ºÅ©¸°ÀÇ Á¡À» ÅëÇØ ¹ÝÈ¯
+        //ï¿½ï¿½ï¿½ì½º ï¿½ï¿½Ä¡ï¿½ï¿½ Ä«ï¿½Þ¶ï¿½ï¿½Ì¸ï¿½ ï¿½Ì¿ï¿½ï¿½ï¿½ Ä«ï¿½Þ¶ó¿¡¼ï¿½ ï¿½ï¿½Å©ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
         Plane GroupPlane = new Plane(Vector3.up, Vector3.zero);
-        //¿ùµåÁÂÇ¥·Î ÇÏ´Ã ¹æÇâ¿¡ Å©±â°¡ 1ÀÎ ¹éÅÍ¿Í ¿øÁ¡À» °®À½
-        if (GroupPlane.Raycast(cameraRay, out float rayLength)) //·¹ÀÌ°¡ Æò¸é°ú ±³Â÷Çß´ÂÁö ÆÄ¾Ç
+        //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç¥ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½â¿¡ Å©ï¿½â°¡ 1ï¿½ï¿½ ï¿½ï¿½ï¿½Í¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+        if (GroupPlane.Raycast(cameraRay, out float rayLength)) //ï¿½ï¿½ï¿½Ì°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ß´ï¿½ï¿½ï¿½ ï¿½Ä¾ï¿½
         {
-            Vector3 pointTolook = cameraRay.GetPoint(rayLength); //·¹ÀÌ·À½º°Å¸®¿¡ À§Ä¡°ª ¹ÝÈ¯
+            Vector3 pointTolook = cameraRay.GetPoint(rayLength); //ï¿½ï¿½ï¿½Ì·ï¿½ï¿½ï¿½ï¿½Å¸ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½È¯
             /*transform.LookAt(new Vector3(pointTolook.x, transform.position.y, pointTolook.z));
-            //À§¿¡¼­ ±¸ÇÑ pointTolook À§Ä¡°ªÀ» Ä³¸¯ÅÍ°¡ º¸°ÔÇÔ*/
-            Vector3 dir = pointTolook - this.transform.position; //“‡Çâ ±¸ÇÏ±â, ¹æÇâ º¤ÅÍ°ª = ¸ñÇ¥º¤ÅÍ - ½ÃÀÛº¤ÅÍ
-            Quaternion rot = Quaternion.LookRotation(dir.normalized); //¹æÇâÀÇ ÄõÅÍ´Ï¾ð °ª ±¸ÇÏ±â, Äõ³ÊÆ¼¾ð °ª = Äõ³ÊÆ¼¾ð ¹æÇâ °ª(¹æÇâ º¤ÅÍ)
+            //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ pointTolook ï¿½ï¿½Ä¡ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½*/
+            Vector3 dir = pointTolook - this.transform.position; //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï±ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í°ï¿½ = ï¿½ï¿½Ç¥ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½Ûºï¿½ï¿½ï¿½
+            Quaternion rot = Quaternion.LookRotation(dir.normalized); //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í´Ï¾ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Ï±ï¿½, ï¿½ï¿½ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ = ï¿½ï¿½ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
             
-            RotatePoint.transform.rotation = rot; //¹æÇâ µ¹¸®±â
+            RotatePoint.transform.rotation = rot; //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             Debug.DrawRay(cameraRay.origin, cameraRay.direction * 10.0f, Color.red, 0.1f);
         }
     }

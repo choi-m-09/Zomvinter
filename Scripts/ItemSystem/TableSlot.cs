@@ -3,35 +3,54 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using TMPro;
 
 public class TableSlot : MonoBehaviour, IPointerClickHandler
 { 
-    public ItemData Data;
+    public Item item;
+    ItemData ItemData;
+    public TMP_Text amount_text;
 
     Inventory _inventory;
 
     void Start()
     {
-        this.GetComponent<Image>().sprite = Data.ItemImage;
+        if (item == null)
+        {
+            Destroy(this.gameObject);
+            return;
+        }
+        ItemData = SetItemData(item);
+        this.GetComponent<Image>().sprite = ItemData.ItemImage;
+
+        if (item is CountableItem ci)
+        {
+            amount_text.text = ci.Amount.ToString();
+        }
+        else Destroy(amount_text.gameObject);
         _inventory = Canvas.FindObjectOfType<Inventory>();
     }
 
-    // Update is called once per frame
-    void Update()
+    public ItemData SetItemData(Item item)
     {
-        
+        if (item is GunItem gi) return gi.GunData;
+        else if (item is AmmoItem am) return am.AmmoData;
+        else if (item is ArmorItem ai) return ai.ArmorData;
+        else if (item is PotionItem pi) return pi.PotionData;
+        else if (item is IngredientItem in_i) return in_i.IngredientData;
+        return null;
     }
 
     public void OnPointerClick(PointerEventData eventData)
     {
         if (eventData.button == PointerEventData.InputButton.Right)
         {
-            if (Data != null)
+            if (item != null)
             {
-                   int Index = _inventory.FindEmptySlotIndex(_inventory.Items, _inventory.Items.Count);
-                   _inventory.Items[Index] = Data;
-                   Data = null;
-                   Destroy(this.gameObject);
+                {
+                    _inventory.Add(item);
+                    Destroy(this.gameObject);
+                }
             }
             
         }
